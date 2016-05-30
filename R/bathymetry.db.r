@@ -177,14 +177,14 @@
 
 			if ( "snowcrab" %in% additional.data ) {
         # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
-			  p0 = p  # loadfunctions "snowcrab" will overwrite p .. store a copy and return it to original state below
-        loadfunctions( "snowcrab")
+			  # p0 = p  # loadfunctions "snowcrab" will overwrite p .. store a copy and return it to original state below
+        ecomodLibrary( "snowcrab")
         sc = snowcrab.db("set.clean")[,c("lon", "lat", "z") ]
 				sc = sc [ which (is.finite( rowSums( sc ) ) ) ,]
 				j = which(duplicated(sc))
         if (length (j) > 0 ) sc = sc[-j,]
         bathy = rbind( bathy, sc )
-			  p = p0
+			  # p = p0
         rm (sc); gc()
 
         #sc$lon = round(sc$lon,1)
@@ -194,7 +194,8 @@
 
       if ( "groundfish" %in% additional.data ) {
         # n=13031; range = 0 to 1054
-				loadfunctions("groundfish")
+				ecomodLibrary( "groundfish" )
+
         warning( "Should use bottom contact estimates as a priority ?" )
 				gf = groundfish.db( "set.base" )[, c("lon","lat", "sdepth") ]
 				gf = gf[ which( is.finite(rowSums(gf) ) ) ,]
@@ -281,8 +282,8 @@
       # large computational resources
 
       p=list()
-      p$init.files = loadfunctions( c( "spacetime", "utility", "parallel", "bathymetry" ) )
-      p$libs = RLibrary( "rgdal", "lattice", "parallel" )
+      p$libs = ecomodLibrary( "ecomod_spacetime", "ecomod_utilities", "ecomod_parallel", "ecomod_bathymetry" )
+      p$libs = c( p$libs, RLibrary( "rgdal", "lattice", "parallel" ) )
 
       # ------------------
       # glue all data sources (spherical coords)
@@ -406,7 +407,7 @@
       # Googleearth overlays:
 
       # common functions:
-      loadfunctions( c("spacetime", "utility", "bathymetry"))
+      ecomodLibrary( "ecomod_spacetime", "ecomod_utilities", "ecomod_bathymetry")
 
       cmd = function(x, ...) { system(paste(x, ...)) }
 
@@ -439,12 +440,10 @@
      # 2. map point-kriged data .. used for overlaying onto google-earth to id new stations ---------
      # fishable biomass density
 
-      required.libraries = c(
-        "mgcv", "chron", "lattice"
-      )
-      for ( L in required.libraries) require( L, character.only=T )
+      RLibrary( "mgcv", "chron", "lattice" )
+      ecomodLibrary( "snowcrab")
 
-      loadfunctions("snowcrab", functionname="initialise.local.environment.r" )
+      gmt = initialise.local.environment()
 
       gmt = list()
       gmt$out = file.path( project.datadirectory("snowcrab"), "maps", "googleearth", "R0.platecarre.ps" )
@@ -486,12 +485,10 @@
      # 3. map point-kriged data .. used for overlaying onto google-earth to id new stations ---------
      # SD in fishable biomass
 
-      required.libraries = c(
-        "mgcv", "chron", "lattice"
-      )
-      for ( L in required.libraries) require( L, character.only=T )
+      RLibrary( "mgcv", "chron", "lattice" )
+      ecomodLibrary( "snowcrab" )
 
-      loadfunctions("snowcrab", functionname="initialise.local.environment.r" )
+      gmt = initialise.local.environment()
 
       gmt = list()
       gmt$out = file.path( project.datadirectory("snowcrab"), "maps", "googleearth", "R0.sd.platecarre.ps" )

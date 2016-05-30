@@ -8,9 +8,11 @@ Depends: R (>= 3.0.0)
 Imports: 
   devtools, 
   ecomod_base,
+  ecomod_coastline,
   ecomod_parallel, 
   ecomod_polygons,
-  ecomod_spacetime
+  ecomod_spacetime,
+  ecomod_utilities
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 License: MIT
