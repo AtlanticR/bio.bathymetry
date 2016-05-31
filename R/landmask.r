@@ -15,7 +15,7 @@
  
     if (is.null( lonlat)) {
       #\\ When lonlat is NULL, this is a flag to return a previous generated and saved version
-      #\\ found in ecomod_data/bathymetry/landmask/ ...
+      #\\ found in bio.data/bathymetry/landmask/ ...
       land = NULL
       if (file.exists( fn)) load(fn)
       if ( return.value=="test" )     return( land)

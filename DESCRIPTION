@@ -1,4 +1,4 @@
-Package: ecomod_bathymetry
+Package: bio.bathymetry
 Title: Package that interacts with ecomod and associated projects to model and estimate bathymetry. 
 Version: 0.1
 Authors@R: c( person("Jae", "Choi", email="choijaeseok@gmail.com", role=c("aut", "cre")) ) 
@@ -7,16 +7,16 @@ Description: This project interacts with the functionality of ecomod
 Depends: R (>= 3.0.0)
 Imports: 
   devtools, 
-  ecomod_base,
-  ecomod_coastline,
-  ecomod_parallel, 
-  ecomod_polygons,
-  ecomod_spacetime,
-  ecomod_utilities
+  bio.base,
+  bio.coastline,
+  bio.parallel, 
+  bio.polygons,
+  bio.spacetime,
+  bio.utilities
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
 License: MIT
 LazyData: true
-URL: https://github.com/jae0/ecomod_bathymetry/
+URL: https://github.com/Beothuk/bio.bathymetry/
 
 

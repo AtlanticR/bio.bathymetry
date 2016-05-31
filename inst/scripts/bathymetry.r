@@ -2,11 +2,11 @@
 # Bathymetry data: processing bathymetry data with RINLA  .. no GMT dependency
 # warning: this will take weeks as it is an iterative process
 
-  p = list( project.name = "ecomod_bathymetry" )
+  p = list( project.name = "bio.bathymetry" )
 
   p$project.root = project.datadirectory( p$project.name )
 
-  p$libs = ecomodLibrary( "ecomod_spacetime", "ecomod_utilities", "ecomod_parallel", "ecomod_bathymetry", "ecomod_coastline", "ecomod_polygons" )
+  p$libs = ecomodLibrary( "bio.spacetime", "bio.utilities", "bio.parallel", "bio.bathymetry", "bio.coastline", "bio.polygons" )
   p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "gstat", "geoR",
     "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",
     "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" ) ) )

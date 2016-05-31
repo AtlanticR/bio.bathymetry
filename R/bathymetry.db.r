@@ -13,7 +13,7 @@
       library(RNetCDF)
       # request at: https://www.bodc.ac.uk/data/online_delivery/gebco/ [ jae.choi@dfo ] ... / gate.gate
       # extent: (WSEN) = -72,36,-45.,53
-      # and saved as: ecomod_data/bathymetry/data/gebco.{xyz,nc}  # still waiting
+      # and saved as: bio.data/bathymetry/data/gebco.{xyz,nc}  # still waiting
       # and xz compressed
       fn = file.path( datadir, "bathymetry.gebco.rdata" )
       if (file.exists (fn) ) {
@@ -38,7 +38,7 @@
       # etopo1_bedrock.xyz ---> 1 min resolution
       # extent: (WSEN) = -72,36,-45.,53
       # download manually from:  http://maps.ngdc.noaa.gov/viewers/wcs-client/
-      # and saved as: ecomod_data/bathymetry/data/etopo1_bedrock.xyz
+      # and saved as: bio.data/bathymetry/data/etopo1_bedrock.xyz
       # and xz compressed
       fn = file.path( datadir, "bathymetry.etopo1.rdata" )
       if (file.exists (fn) ) {
@@ -282,7 +282,7 @@
       # large computational resources
 
       p=list()
-      p$libs = ecomodLibrary( "ecomod_spacetime", "ecomod_utilities", "ecomod_parallel", "ecomod_bathymetry" )
+      p$libs = ecomodLibrary( "bio.spacetime", "bio.utilities", "bio.parallel", "bio.bathymetry" )
       p$libs = c( p$libs, RLibrary( "rgdal", "lattice", "parallel" ) )
 
       # ------------------
@@ -407,7 +407,7 @@
       # Googleearth overlays:
 
       # common functions:
-      ecomodLibrary( "ecomod_spacetime", "ecomod_utilities", "ecomod_bathymetry")
+      ecomodLibrary( "bio.spacetime", "bio.utilities", "bio.bathymetry")
 
       cmd = function(x, ...) { system(paste(x, ...)) }
 

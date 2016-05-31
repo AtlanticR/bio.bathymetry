@@ -1,7 +1,7 @@
 
 bathymetry.figures = function( DS=NULL, p=NULL, zrange=NULL ) {
 
-  ecomodLibrary( "ecomod_coastline" )
+  ecomodLibrary( "bio.coastline" )
 
   if ( DS=="predictions" ) {
 
