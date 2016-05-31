@@ -9,7 +9,6 @@ Imports:
   devtools, 
   bio.base,
   bio.coastline,
-  bio.parallel, 
   bio.polygons,
   bio.spacetime,
   bio.utilities

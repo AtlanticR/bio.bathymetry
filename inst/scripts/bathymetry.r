@@ -6,7 +6,7 @@
 
   p$project.root = project.datadirectory( p$project.name )
 
-  p$libs = ecomodLibrary( "bio.spacetime", "bio.utilities", "bio.parallel", "bio.bathymetry", "bio.coastline", "bio.polygons" )
+  p$libs = ecomodLibrary( "bio.spacetime", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons" )
   p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "gstat", "geoR",
     "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",
     "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" ) ) )

@@ -282,7 +282,7 @@
       # large computational resources
 
       p=list()
-      p$libs = ecomodLibrary( "bio.spacetime", "bio.utilities", "bio.parallel", "bio.bathymetry" )
+      p$libs = ecomodLibrary( "bio.spacetime", "bio.utilities", "bio.bathymetry" )
       p$libs = c( p$libs, RLibrary( "rgdal", "lattice", "parallel" ) )
 
       # ------------------
