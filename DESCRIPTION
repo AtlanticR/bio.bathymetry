@@ -10,9 +10,9 @@ Imports:
   bio.base,
   bio.coastline,
   bio.polygons,
-  bio.spacetime,
   bio.utilities
-Suggests: knitr, rmarkdown
+Suggests: knitr, rmarkdown,
+  bio.spacetime
 VignetteBuilder: knitr
 License: MIT
 LazyData: true
