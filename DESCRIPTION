@@ -1,9 +1,9 @@
 Package: bio.bathymetry
-Title: Package that interacts with ecomod and associated projects to model and estimate bathymetry. 
+Title: Package that interacts with bio.* tools and associated projects to model and estimate bathymetry. 
 Version: 0.1
 Authors@R: c( person("Jae", "Choi", email="choijaeseok@gmail.com", role=c("aut", "cre")) ) 
-Description: This project interacts with the functionality of ecomod 
-    to do something very special ...
+Description: This project interacts with the functionality of beothuk/bio.* tools 
+    to do manipulate bathymetry data 
 Depends: R (>= 3.0.0)
 Imports: 
   devtools, 

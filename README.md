@@ -1,6 +1,6 @@
 # bio.bathymetry
 
-Package to help develop and/or use ecomod tools in order to operate of bathymetric data.
+Package to help develop and/or use bio.* tools in order to operate of bathymetric data.
 
 Installation:
 
