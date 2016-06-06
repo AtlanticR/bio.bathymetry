@@ -3,7 +3,7 @@
     RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
     "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields"))
 
-    datadir = project.datadirectory("bathymetry", "data" )  # raw data
+    datadir = project.datadirectory("bio.bathymetry", "data" )  # raw data
 		dir.create( datadir, showWarnings=F, recursive=T )
 
     #\\ Note inverted convention: depths are positive valued
@@ -79,7 +79,7 @@
       gdem$plat = gdem$plat / 1000
       gdem = planar2lonlat( gdem, "utm20" )  # plon,plat in meters but crs for utm20 in km
       gdem = gdem[, c("lon", "lat", "z") ]
-      save( gdem, file=project.datadirectory( "bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
+      save( gdem, file=project.datadirectory( "bio.bathymetry", "data", "bathymetry.greenlaw.rdata"), compress=TRUE )
     }
 
     # --------------
@@ -193,10 +193,9 @@
 
       if ( "groundfish" %in% additional.data ) {
         # n=13031; range = 0 to 1054
-				bioLibrary( "groundfish" )
 
         warning( "Should use bottom contact estimates as a priority ?" )
-				gf = groundfish.db( "set.base" )[, c("lon","lat", "sdepth") ]
+				gf = bio.groundfish::groundfish.db( "set.base" )[, c("lon","lat", "sdepth") ]
 				gf = gf[ which( is.finite(rowSums(gf) ) ) ,]
         names(gf) = c("lon", "lat", "z")
 				j = which(duplicated(gf))
@@ -371,7 +370,7 @@
 
       x$z =log( x$z )
 
-      outdir = file.path(project.datadirectory("bathymetry","maps"), p$spatial.domain)
+      outdir = file.path(project.datadirectory("bio.bathymetry","maps"), p$spatial.domain)
 
       dr = quantile( x$z, probs=c(0.005, 0.995))
       datarange = seq(dr[1], dr[2], length.out=100)
@@ -415,12 +414,12 @@
       # 1.  map of bathymetry contours : colour background and lines
 
       gmt = list()
-      gmt$out = file.path(project.datadirectory("bathymetry"), "ss.bathymetry.colour.platecarre.ps" )
+      gmt$out = file.path(project.datadirectory("bio.bathymetry"), "ss.bathymetry.colour.platecarre.ps" )
       gmt$outputs = c( "colourscale", "colourcontour", "bathymetry.redo" )
       gmt$region=" -R-72/-52/40/50"
       gmt$gmtproj="-JQ-62/6.5i"  # Cylindrical equidistant (Plate Carre)  the default required by Google Earth
       gmt$resolution="-I0.25m" #  resolution
-      gmt$inp = file.path(project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz" )
+      gmt$inp = file.path(project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz" )
       gmt$tension ="-T0.35"
       gmt$cpt = "-Cjet -T-350/350/10 -Z -D"
       gmt$incscale = "-B50"
@@ -460,7 +459,7 @@
       gmt$annot.text = "Fishable biomass (log10; kg/km2)"
       gmt$scale.location = "-D4.25i/0.75i/0.75i/0.075ih" # alternate: "-D4.5i/0.8i/2.5i/.25ih"
 
-      gmt$bathy.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz")
+      gmt$bathy.xyz = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz")
       gmt$bathy.grid = file.path(tmpdir, make.random.string(".gmt.grid"))
 
       PS = kriging.db( DS="UK.point.PS", p=list(v="R0.mass", y=2008, r="cfaall", transgaussian.kriging=T)  )
@@ -497,7 +496,7 @@
       gmt$resolution="-I0.25m" #  resolution
       gmt$inp = NULL
       gmt$tension ="-T1"
-      gmt$bathy.xyz = file.path( project.datadirectory("bathymetry"), "data", "bathymetry.canada.east.xyz")
+      gmt$bathy.xyz = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz")
       gmt$bathy.grid = file.path(tmpdir, make.random.string(".gmt.grid"))
 
       PS = kriging.db( DS="UK.point.PS", p=list(v="R0.mass", y=2008, r="cfaall", transgaussian.kriging=T)  )
@@ -530,7 +529,7 @@
     if ( DS %in% c("prepare.intermediate.files.for.dZ.ddZ", "Z.gridded", "dZ.gridded", "ddZ.gridded" ) ) {
 
 			tmpdir  = tempdir()
-			outdir = project.datadirectory("bathymetry", "interpolated" )
+			outdir = project.datadirectory("bio.bathymetry", "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
 
 			fn.interp.z = file.path( outdir,  paste(  p$spatial.domain, "Z.interpolated.xyz", sep=".") )
@@ -584,7 +583,7 @@
 
 		if ( DS %in% c( "Z.redo", "Z.lonlat", "Z.lonlat.grid", "Z.planar", "Z.planar.grid" ) ) {
 
-			outdir = project.datadirectory("bathymetry", "interpolated" )
+			outdir = project.datadirectory("bio.bathymetry", "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
 
 			fn.lonlat = file.path( outdir, paste( p$spatial.domain, "Z.interpolated.lonlat.rdata", sep=".") )
@@ -645,7 +644,7 @@
 
 		if ( DS %in% c( "dZ.redo", "dZ.lonlat", "dZ.lonlat.grid", "dZ.planar", "dZ.planar.grid" ) ) {
 
-			outdir = file.path( project.datadirectory("bathymetry"), "interpolated" )
+			outdir = file.path( project.datadirectory("bio.bathymetry"), "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
 
       fn.lonlat = file.path( outdir, paste( p$spatial.domain, "dZ.interpolated.lonlat.rdata", sep=".")  )
@@ -708,7 +707,7 @@
     }
 
     if ( DS %in% c( "ddZ.redo", "ddZ.lonlat", "ddZ.planar", "ddZ.lonlat.grid", "ddZ.planar.grid"  ) ) {
-     	outdir = file.path( project.datadirectory("bathymetry"), "interpolated" )
+     	outdir = file.path( project.datadirectory("bio.bathymetry"), "interpolated" )
 			dir.create( outdir, showWarnings=F, recursive=T )
 
       fn.lonlat = file.path( outdir,  paste( p$spatial.domain, "ddZ.interpolated.lonlat.rdata", sep=".")  )
@@ -774,7 +773,7 @@
     if (DS %in% c("baseline.gmt", "baseline.gmt.redo") ) {
       #\\ form prediction surface in planar coords for SS snowcrab area
       #\\ deprecated .. use "baseline" (below)
-      outfile =  file.path( project.datadirectory("bathymetry"), "interpolated",
+      outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated",
           paste( p$spatial.domain, "baseline.interpolated.gmt.rdata" , sep=".") )
 
       if ( DS=="baseline.gmt" ) {
@@ -799,7 +798,7 @@
 
     if (DS %in% c("baseline", "baseline.redo") ) {
       # form prediction surface in planar coords
-      outfile =  file.path( project.datadirectory("bathymetry"), "interpolated",
+      outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated",
           paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
 
       if ( DS=="baseline" ) {
@@ -836,7 +835,7 @@
       # following methods are now deprecated and here on for backaward compatibility
       # to access use DS="complete.gmt"
 
-      outfile =  file.path( project.datadirectory("bathymetry"), "interpolated", paste( p$spatial.domain, "complete.rdata" , sep=".") )
+      outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated", paste( p$spatial.domain, "complete.rdata" , sep=".") )
       if (p$spatial.domain == "snowcrab" ) outfile=gsub( p$spatial.domain, "SSE", outfile )
 
       if ( DS=="complete.gmt" ) {
@@ -865,7 +864,7 @@
     if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) {
       #\\ DS="lookuptable.sse.snowcrab(.redo)" creates/returns a lookuptable for SSE -> snowcrab domains
       #\\   both share the same initial domains + resolutions and so it is faster to operate upon the indices
-      fn = file.path( project.datadirectory("bathymetry"), "interpolated", "sse.snowcrab.lookup.rdata")
+      fn = file.path( project.datadirectory("bio.bathymetry"), "interpolated", "sse.snowcrab.lookup.rdata")
       if (DS== "lookuptable.sse.snowcrab" ) {
         if (file.exists(fn)) load(fn)
         return(id)
@@ -945,7 +944,7 @@
     if ( DS %in% c("bathymetry.spacetime.finalize.redo", "bathymetry.spacetime.finalize" )) {
       #// bathymetry( p, DS="bathymetry.spacetime.finalize(.redo)" return/create the
       #//   spacetime interpolated method formatted and finalised for production use
-      fn = file.path(  project.datadirectory("bathymetry"), "interpolated",
+      fn = file.path(  project.datadirectory("bio.bathymetry"), "interpolated",
         paste( "bathymetry", "spacetime", "finalized", p$spatial.domain, "rdata", sep=".") )
       if (DS =="bathymetry.spacetime.finalize" ) {
         B = NULL
@@ -1204,7 +1203,7 @@
               domain = p$grids.new
         } } }
 
-        fn = file.path( project.datadirectory("bathymetry", "interpolated"),
+        fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
           paste( "bathymetry", "spde_complete", domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
 
@@ -1257,7 +1256,7 @@
             from =rasterize( Z0, spatial.parameters.to.raster(p0), field=vn, fun=mean),
             to   =spatial.parameters.to.raster( p1) )
         }
-        fn = file.path( project.datadirectory("bathymetry", "interpolated"),
+        fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
           paste( "bathymetry", "spde_complete", p1$spatial.domain, "rdata", sep=".") )
         save (Z, file=fn, compress=TRUE)
         print(fn)

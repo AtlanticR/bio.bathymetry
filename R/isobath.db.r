@@ -3,7 +3,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
   #\\ create or return isobaths and coastlines/coast polygons
 
   if (DS %in% c( "isobath", "isobath.redo" )) {
-    fn.iso = file.path( project.datadirectory("bathymetry", "isobaths" ), "isobaths.rdata" )
+    fn.iso = file.path( project.datadirectory("bio.bathymetry", "isobaths" ), "isobaths.rdata" )
     isobaths = NULL
     notfound = NULL
 
@@ -54,7 +54,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
   if ( DS %in% c("gmt", "gmt.redo")) {
     # gmt methods are deprecated
     if (exists( "libs", p)) RLibrary( p$libs )
-    datadir = project.datadirectory("bathymetry", "isobaths", p$spatial.domain )
+    datadir = project.datadirectory("bio.bathymetry", "isobaths", p$spatial.domain )
     if (! file.exists( datadir) ) dir.create(datadir, showWarnings=FALSE , recursive=TRUE )
 
     if ( DS == "gmt" ) {
