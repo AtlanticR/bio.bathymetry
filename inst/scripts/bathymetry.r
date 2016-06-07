@@ -8,8 +8,7 @@
 
   p$libs = bioLibrary( "bio.spacetime", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons" )
   p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "gstat", "geoR",
-    "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",
-    "bigmemory.sri", "synchronicity", "bigmemory", "biganalytics", "bigtabulate", "bigalgebra" ) ) )
+    "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",  "bigmemory" ) ) )
 
   # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
   # use "complete" to project/downscale/upscale onto other grids/resolutions
