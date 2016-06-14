@@ -29,6 +29,7 @@
   make.bathymetry.db = FALSE
   if (make.bathymetry.db) {
     # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
+    # also needs about 42 GB RAM, JC 2015
     bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo",
       additional.data=c("snowcrab", "groundfish") )
   }
