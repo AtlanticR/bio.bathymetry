@@ -1,7 +1,8 @@
 
   bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), return.format="dataframe" ) {
-    RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
-    "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields"))
+
+    # RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
+    # "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields"))
 
     datadir = project.datadirectory("bio.bathymetry", "data" )  # raw data
 		dir.create( datadir, showWarnings=F, recursive=T )
@@ -177,8 +178,8 @@
 
 			if ( "snowcrab" %in% additional.data ) {
         # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
-        bioLibrary( "bio.snowcrab")
-        sc = snowcrab.db("set.clean")[,c("lon", "lat", "z") ]
+        # bioLibrary( "bio.snowcrab")
+        sc = bio.snowcrab::snowcrab.db("set.clean")[,c("lon", "lat", "z") ]
 				sc = sc [ which (is.finite( rowSums( sc ) ) ) ,]
 				j = which(duplicated(sc))
         if (length (j) > 0 ) sc = sc[-j,]
