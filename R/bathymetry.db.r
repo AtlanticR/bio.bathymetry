@@ -438,7 +438,7 @@
      # 2. map point-kriged data .. used for overlaying onto google-earth to id new stations ---------
      # fishable biomass density
 
-      gmt = bio.snowcrab::initialise.local.environment()
+      gmt = bio.snowcrab::load.environment()
 
       gmt$out = file.path( project.datadirectory("bio.snowcrab"), "maps", "googleearth", "R0.platecarre.ps" )
       gmt$outputs = c( "colourscale", "colourcontour" )
@@ -479,7 +479,7 @@
      # 3. map point-kriged data .. used for overlaying onto google-earth to id new stations ---------
      # SD in fishable biomass
 
-      gmt = bio.snowcrab::initialise.local.environment()
+      gmt = bio.snowcrab::load.environment()
       gmt$out = file.path( project.datadirectory("bio.snowcrab"), "maps", "googleearth", "R0.sd.platecarre.ps" )
       gmt$outputs = c( "colourscale", "colourcontour" )
       gmt$region=" -R-72/-52/40/50"
