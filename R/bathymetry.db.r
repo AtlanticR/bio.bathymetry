@@ -1,9 +1,6 @@
 
   bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), return.format="dataframe" ) {
 
-    # RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
-    # "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields"))
-
     datadir = project.datadirectory("bio.bathymetry", "data" )  # raw data
 		dir.create( datadir, showWarnings=F, recursive=T )
 

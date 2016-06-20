@@ -5,6 +5,9 @@
   p = bio.bathymetry::bathymetry.parameters( DS="bio.bathymetry" )
   # p$clusters = c( rep( "nyx", nc ), rep ("tartarus", nc), rep("kaos", nc ) )
 
+    # RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
+    # "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields"))
+
 
   ### -----------------------------------------------------------------
   make.bathymetry.db = FALSE
