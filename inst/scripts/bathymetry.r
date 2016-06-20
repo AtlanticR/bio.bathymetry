@@ -2,26 +2,7 @@
 # Bathymetry data: processing bathymetry data with RINLA  .. no GMT dependency
 # warning: this will take weeks as it is an iterative process
 
-  p = list( project.name = "bio.bathymetry" )
-
-  p$project.root = project.datadirectory( p$project.name )
-
-  p$libs = bioLibrary( "bio.spacetime", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons" )
-  p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "gstat", "geoR",
-    "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",  "bigmemory" ) ) )
-
-  # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
-  # use "complete" to project/downscale/upscale onto other grids/resolutions
-  p = spatial.parameters( type="canada.east.highres", p=p )
-
-  p = spacetime.parameters(p)  # load defaults
-
-  p$bathymetry.bigmemory.reset = FALSE
-
-  # cluster definition
-  nc = 1
-  # nc = 5
-  p$clusters = rep( "localhost", nc )
+  p = bio.bathymetry::bathymetry.parameters( DS="bio.bathymetry" )
   # p$clusters = c( rep( "nyx", nc ), rep ("tartarus", nc), rep("kaos", nc ) )
 
 
