@@ -2,7 +2,7 @@
 # Bathymetry data: processing bathymetry data with RINLA  .. no GMT dependency
 # warning: this will take weeks as it is an iterative process
 
-  p = bio.bathymetry::bathymetry.parameters( DS="bio.bathymetry" )
+  p = bio.bathymetry::bathymetry.parameters()
   # p$clusters = c( rep( "nyx", nc ), rep ("tartarus", nc), rep("kaos", nc ) )
 
     # RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
@@ -10,41 +10,52 @@
 
 
   ### -----------------------------------------------------------------
-  make.bathymetry.db = FALSE
-  if (make.bathymetry.db) {
-    # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
-    # also needs about 42 GB RAM, JC 2015
-    bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo",
+  # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
+  # also needs about 42 GB RAM, JC 2015
+  bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo",
       additional.data=c("snowcrab", "groundfish") )
-  }
+  bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+  bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
+
+  
+  ### -----------------------------------------------------------------
+
+  p = bio.bathymetry::bathymetry.parameters( p=p, DS="bio.bathymetry.local" )
+
+  # covariance only
+  # if doing just spatial.covariance .. not as much ram is required
+
+  p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) ) 
+  p = spacetime( method="covariance.spatial",
+    DATA=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
+    OUT=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction"), 
+    p=p, overwrite=TRUE )
+
+      # to see the raw saved versions of the the results:
+      covSp = spacetime( p=p, DS="covariance.spatial" ) # load saved data
+
 
 
   ### -----------------------------------------------------------------
-  spatial.covariance.redo = FALSE
-  if (spatial.covariance.redo) {
-    p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) )
-    # p$bathymetry.bigmemory.reset = TRUE   # reset needed if variables entering are changing (eg., addiing covariates with interpolation, etc)
-    bathymetry.db( p=p, DS="covariance.spatial.redo" )
-  }
-  covSp = bathymetry.db( p=p, DS="covariance.spatial" )
+  # do  not use all CPU's as INLA itself is partially run in parallel
+  # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
 
+  p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
+    
+  # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
+  p = spacetime( method="inla.interpolations",
+    DATA=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
+    OUT=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction"), 
+    p=p, overwrite=TRUE )
 
-  ### -----------------------------------------------------------------
-  spatial.interpolation.redo = FALSE
-  if (spatial.interpolation.redo) {
-    # do not use all CPU's as INLA itself is partially run in parallel
-    # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
-    p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
-    # p$bathymetry.bigmemory.reset = TRUE   # reset needed if variables entering are changing (eg., addiing covariates with interpolation, etc)
-    # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
-    bathymetry.db( p=p DS="spde.redo" )
-    # to see the raw saved versions of the the results:
-    # predSp = spacetime.db( p=p, DS="predictions.redo" )
-    # statSp = spacetime.db( p=p, DS="statistics.redo" )
-    # to see the assimilated data:
-    # B = bathymetry( p=p, DS="bathymetry.spacetime.finalize" )
-  }
+      # to see the raw saved versions of the the results:
+      predSp = spacetime( p=p, DS="inla.predictions" )
+      statSp = spacetime( p=p, DS="inla.statistics" )
+   
 
+    # bring together stats and predictions and any other required computations: slope and curvature
+    bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )
+      # B = bathymetry( p=p, DS="bathymetry.spacetime.finalize" )     # to see the assimilated data:
 
   ### -----------------------------------------------------------------
   # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run

@@ -944,7 +944,7 @@
       nr = p$nplons
       nc = p$nplats
 
-      BP = spacetime.db( p=p, DS="predictions" )
+      BP = spacetime( p=p, DS="inla.predictions" )
       BP = BP[, c( "plon", "plat", "mean", "sdev")]
       names(BP) = c( "plon", "plat", "z", "Z.predictionSD") # really Z.mean but for historical compatibility "z"
 
@@ -979,7 +979,7 @@
       BP$ddZ = abs(c(ddZ))
 
       # merge into statistics
-      BS = spacetime.db( p=p, DS="statistics" )
+      BS = spacetime( p=p, DS="inla.statistics" )
       B = cbind( BP, BS )
       names(B) = c( names(BP), "Z.rangeMode", "Z.rangeSD", "Z.spatialSD", "Z.observationSD" )
 
@@ -997,184 +997,6 @@
 
     # ------------
 
-
-     if (DS=="reset.bigmemory.objects" ) {
-
-         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
-         bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
-
-         # transfer data into spacetime methods as bigmemory objects
-         spacetime.db( p=p, DS="bigmemory.inputs.data", B=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ) )
-         spacetime.db( p=p, DS="bigmemory.inputs.prediction", B=bathymetry.db(p=p, DS="bathymetry.spacetime.inputs.prediction" )) ## just locations, no covars
-
-         # reset bigmemory output data objects  (e.g., if you are restarting)
-         spacetime.db( p=p, DS="predictions.bigmemory.initialize" )
-         spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
-         cat( paste( Sys.time(), Sys.info()["nodename"], p$project.name, p$project.root, p$spatial.domain, "\n" ),
-            file=p$debug.file, append=FALSE ) # init
-
-        # define boundary polygon for data .. this trims the prediction/statistics locations to speed things up a little ..
-        p$mesh.boundary.resolution = 150
-        p$mesh.boundary.convex = -0.025
-        spacetime.db( p, DS="boundary.redo" ) # ~ 5 min
-    }
-
-
-    # ------------
-
-
-    if ( DS %in% c( "spde.redo" ) ) {
-      #// substrate.db( DS="spde" .. ) returns the spatial interpolations from inla
-
-      p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-      p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
-      p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2 ) # local block search fractions  -- need to adjust based upon data density
-      p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
-      p$variables = list( Y="z", LOCS=c("plon", "plat") )
-
-      p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude
-      p$spacetime.invlink = function( X ) { exp(X) - 1000 }
-
-
-      p$dist.max = 100 # length scale (km) of local analysis .. for acceptance into the local analysis/model
-      p$dist.min = 75 # lower than this .. subsampling occurs
-      p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
-      p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-      p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
-
-      p$expected.range = 50 #+units=km km , with dependent var on log scale
-      p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
-
-      p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
-      p$modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime.interpolate.inla.local (below)
-
-      p$spacetime.family = "gaussian"
-      p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
-      p$statsvars = c("range", "range.sd", "spatial.error", "observation.error")
-
-
-      # if not in one go, then the value must be reconstructed from the correct elements:
-      p$spacetime.posterior.extract = function(s, rnm) {
-        # rnm are the rownames that will contain info about the indices ..
-        # optimally the grep search should only be done once but doing so would
-        # make it difficult to implement in a simple structure/manner ...
-        # the overhead is minimal relative to the speed of modelling and posterior sampling
-        i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
-        i_spatial.field = grep("spatial.field", rnm, fixed=TRUE )
-        return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
-      }
-
-      if (p$bathymetry.bigmemory.reset) substrate.db( p=p, DS="reset.bigmemory.objects" )
-
-      # run the beast .. warning this will take a very long time! (weeks)
-      sS = spacetime.db( p, DS="statistics.bigmemory.status" )
-      sS$n.incomplete / ( sS$n.problematic + sS$n.incomplete + sS$n.complete)
-
-      p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus
-      parallel.run( spacetime.interpolate.inla.local, p=p ) # no more GMT dependency! :)
-      # spacetime.interpolate.inla.local( p=p, debugrun=TRUE )  # if testing serial process
-
-      if (0) {
-        # for checking status of outputs during parallel runs:
-        bathymetry.figures( DS="statistics", p=p )
-        bathymetry.figures( DS="predictions", p=p )
-        bathymetry.figures( DS="predictions.error", p=p )
-
-        p = spacetime.db( p=p, DS="bigmemory.filenames" )
-        S = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
-        hist(S[,1] )
-        o = which( S[,1] > 600 )
-        S[o,] = NA
-        S[sS$problematic,] = NA
-        o = which( S[,1] < 10 )
-        S[o,] = NA
-      }
-
-      # save to file
-      spacetime.db( p=p, DS="predictions.redo" )
-      spacetime.db( p=p, DS="statistics.redo" )  # this also rescales results to the full domain
-
-      # bring together stats and predictions and any other required computations: slope and curvature
-      bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )
-
-      # clean up bigmemory files
-      spacetime.db( p=p, DS="bigmemory.cleanup" )
-
-    }
-
-
-    # ------------
-
-    if ( DS %in% c( "covariance.spatial", "covariance.spatial.redo" ) ) {
-      #// substrate.db( DS="covariance" .. ) returns the spatial covariance estimates
-      Z = NULL
-      rootdir = file.path( p$project.root, "spacetime" )
-      fn.results =  file.path( rootdir, paste( "spatial", "covariance", p$spatial.domain, "rdata", sep=".") )
-
-      if  (DS %in% c("covariance.spatial"))  {
-        stats = NULL
-        if (file.exists( fn.results) ) load( fn.results )
-        return(stats)
-      }
-
-      p$variogram.engine = "gstat"  # "geoR" seg faults frequently ..
-      p$dist.max = 150 # length scale (km) of local analysis .. for acceptance into the local analysis/model
-      p$dist.min = 100 # length scale (km) of local analysis .. beyond which subsampling occurs
-      p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-      p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
-      p$n.max = 10000 # numerical time/memory constraint -- anything larger takes too much time
-      p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
-      p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25 ) # local block search fractions  -- need to adjust based upon data density
-      p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
-      p$variables = list( Y="z", LOCS=c("plon", "plat") )
-      p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude
-      p$spacetime.invlink = function( X ) { exp(X) - 1000 }
-
-      p$statsvars = c("varTot", "varSpatial", "varObs", "range", "phi", "kappa" )
-
-      # set up the data and problem using bigmemory data objects
-      p = spacetime.db( p=p, DS="bigmemory.filenames" )
-      if (p$bathymetry.bigmemory.reset) substrate.db( p=p, DS="reset.bigmemory.objects" )
-
-      print( paste( "Temporary files are being created at:", p$tmp.datadir ) )
-
-      spacetime.db( p=p, DS="bigmemory.inputs.data", B=substrate.db( p=p, DS="substrate.spacetime.inputs.data" ) )
-      spacetime.db( p=p, DS="statistics.bigmemory.initialize" )
-      spacetime.db( p=p, DS="predictions.bigmemory.initialize" )
-
-      if (0) {
-        # to reset results manually .. just a template
-        # p = spacetime.db( p=p, DS="bigmemory.filenames" )
-        S = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
-        hist(S[,1] )
-        o = which( S[,1] > xxx )
-        S[o,] = NA
-        S[sS$problematic,] = NA
-        o = which( S[,1] < yyy )
-        S[o,] = NA
-        # etc ...
-      }
-
-      sS = spacetime.db( p, DS="statistics.bigmemory.status" )
-      sS$n.incomplete / ( sS$n.problematic + sS$n.incomplete + sS$n.complete)
-
-      p = make.list( list( jj=sample( sS$incomplete ) ), Y=p ) # random order helps use all cpus
-      parallel.run( spacetime.covariance.spatial, p=p ) # no more GMT dependency! :)
-      # spacetime.covariance.spatial( p=p )  # if testing serial process
-
-      print( paste( "Results are being saved to:", fn.results ) )
-      stats = bigmemory::attach.big.matrix(p$descriptorfile.S, path=p$tmp.datadir)  # statistical outputs
-      stats = as.data.frame( stats[] )
-      save(stats, file=fn.results, compress=TRUE )
-
-      print( paste( "Temporary files are being deleted at:", p$tmp.datadir, "tmp" ) )
-      spacetime.db( p=p, DS="bigmemory.cleanup" )
-
-      return( fn.results )
-    }
-
-
-    # -------------
 
     if ( DS %in% c( "complete", "complete.redo") ) {
       #// underlying storage data format is as a list of rasters
@@ -1254,6 +1076,9 @@
     }
 
   }  # end bathymetry.db
+
+
+
 
 
 
