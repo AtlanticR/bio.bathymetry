@@ -20,7 +20,8 @@
   
   ### -----------------------------------------------------------------
 
-  p = bio.bathymetry::bathymetry.parameters( p=p, DS="bio.bathymetry.local" )
+  p = bio.bathymetry::bathymetry.parameters( p=p, DS="bio.bathymetry.spacetime" )
+  
 
   # covariance only
   # if doing just spatial.covariance .. not as much ram is required

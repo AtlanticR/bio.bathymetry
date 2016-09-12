@@ -18,7 +18,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     return(p)
   }
 
-  if (DS=="bio.bathymetry.local") {
+  if (DS=="bio.bathymetry.spacetime") {
     p$rootdir = file.path( p$project.root, "spacetime" )
     p$fn.P =  file.path( p$rootdir, paste( "spacetime", "predictions", p$spatial.domain, "rdata", sep=".") )
     p$fn.S =  file.path( p$rootdir, paste( "spacetime", "statistics", p$spatial.domain, "rdata", sep=".") )
@@ -29,7 +29,6 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2 ) # local block search fractions  -- need to adjust based upon data density
     p$mesh.boundary.resolution = 150
     p$mesh.boundary.convex = -0.025
-    p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
     p$variables = list( Y="z", LOCS=c("plon", "plat") )
     p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude
     p$spacetime.invlink = function( X ) { exp(X) - 1000 }
@@ -46,7 +45,9 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
     p$statsvars = c("range", "range.sd", "spatial.error", "observation.error")
     # if not in one go, then the value must be reconstructed from the correct elements:
-    p$spacetime.posterior.extract = function(s, rnm) {
+    p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
+    p$nPreds = p$nplons * p$nplats
+     p$spacetime.posterior.extract = function(s, rnm) {
       # rnm are the rownames that will contain info about the indices ..
       # optimally the grep search should only be done once but doing so would
       # make it difficult to implement in a simple structure/manner ...
