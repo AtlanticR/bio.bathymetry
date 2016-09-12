@@ -5,23 +5,20 @@
   p = bio.bathymetry::bathymetry.parameters()
   # p$clusters = c( rep( "nyx", nc ), rep ("tartarus", nc), rep("kaos", nc ) )
 
-    # RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA",
-    # "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields"))
-
 
   ### -----------------------------------------------------------------
   # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
   # also needs about 42 GB RAM, JC 2015
-  bathymetry.db ( p=spatial.parameters( type="canada.east", p=p ), DS="z.lonlat.rawdata.redo",
-      additional.data=c("snowcrab", "groundfish") )
-  bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
-  bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
-
+ if ( basedata.redo ) {
+    # processing is  at "canada.east.highres" but temporarily drop to "canada.east to update raw data"
+    bathymetry.db ( p=spatial.parameters( p=p, type="canada.east" ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+    bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+    bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
+  }
   
+
   ### -----------------------------------------------------------------
-
   p = bio.bathymetry::bathymetry.parameters( p=p, DS="bio.bathymetry.spacetime" )
-  
 
   # covariance only
   # if doing just spatial.covariance .. not as much ram is required
