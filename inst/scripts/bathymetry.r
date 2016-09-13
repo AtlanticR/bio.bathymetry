@@ -23,7 +23,8 @@
   # covariance only
   # if doing just spatial.covariance .. not as much ram is required
 
-  p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) ) 
+  # p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) ) 
+  p$clusters ="localhost"
   p = spacetime( method="covariance.spatial",
     DATA=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
     OUT=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction"), 
@@ -37,8 +38,8 @@
   ### -----------------------------------------------------------------
   # do  not use all CPU's as INLA itself is partially run in parallel
   # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
-
-  p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
+  p$clusters ="localhost"
+  # p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
     
   # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
   p = spacetime( method="inla.interpolations",
