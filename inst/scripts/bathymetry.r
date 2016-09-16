@@ -25,12 +25,12 @@
 
   # p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) ) 
   p$clusters ="localhost"
-  p = spacetime( method="covariance.spatial",
+  p = spacetime( method="spatial.covariance",
     DATA=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
     p=p, overwrite=TRUE )
 
       # to see the raw saved versions of the the results:
-      covSp = spacetime( p=p, DS="covariance.spatial" ) # load saved data
+      covSp = spacetime( p=p, DS="spatial.covariance" ) # load saved data
 
 
 
