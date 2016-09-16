@@ -27,7 +27,6 @@
   p$clusters ="localhost"
   p = spacetime( method="covariance.spatial",
     DATA=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
-    OUT=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction"), 
     p=p, overwrite=TRUE )
 
       # to see the raw saved versions of the the results:
