@@ -5,9 +5,8 @@ bathymetry.figures = function( DS=NULL, p=NULL, zrange=NULL ) {
 
   if ( DS=="predictions" ) {
 
-    p = spacetime.db( p=p, DS="filenames" )
-    P = h5file( p$ptr$P)["P"]
-    Ploc = h5file( p$ptr$Ploc)["Ploc"]
+    P = p$ff$P
+    Ploc = p$ff$Ploc
     p$spatial.domain="canada.east"  # force isobaths to work in levelplot
     if (is.null( zrange)) {
       datarange = log( c( 5, 4000 ))
@@ -27,14 +26,13 @@ bathymetry.figures = function( DS=NULL, p=NULL, zrange=NULL ) {
           sp.lines( coastline.db( p=p, crs=p$internal.crs ), col = "steelblue", cex=0.1 )
         }
     ) )
-    h5close( Ploc )
-    h5close( P)
+    close( Ploc )
+    close( P)
   }
 
   if ( DS=="predictions.error" ) {
-    p = spacetime.db( p=p, DS="filenames" )
-    P = h5file( p$ptr$P)["P"]
-    Ploc = h5file( p$ptr$Ploc)["Ploc"]
+    P = p$ff$P
+    Ploc = p$ff$Ploc
     p$spatial.domain="canada.east"  # force isobaths to work in levelplot
     if (is.null( zrange)) {
       datarange = log( c( 2, 50 ))
@@ -53,15 +51,15 @@ bathymetry.figures = function( DS=NULL, p=NULL, zrange=NULL ) {
           sp.lines( coastline.db( p=p, crs=p$internal.crs ), col = "steelblue", cex=0.1 )
         }
      ))
-    h5close( Ploc )
-    h5close( P)
+    close( Ploc )
+    close( P)
   }
 
 
   if ( DS=="statistics" ) {
-    p = spacetime.db( p=p, DS="filenames" )
-    S = h5file( p$ptr$S)["S"]
-    Sloc = h5file( p$ptr$Sloc)["Sloc"]
+    
+    S = p$ff$S
+    Sloc = p$ff$Sloc
     p$spatial.domain="canada.east"  # force isobaths to work in levelplot
     if (is.null( zrange)) {
       datarange = log( c( 5, 800 ))
@@ -78,12 +76,9 @@ bathymetry.figures = function( DS=NULL, p=NULL, zrange=NULL ) {
         sp.lines( coastline.db( p=p, crs=p$internal.crs ), col = "steelblue", cex=0.1 )
       }
    ) )
-    h5close( Sloc )
-    h5close( S)
+    close( Sloc )
+    close( S)
   }
-
-
-
 
 }
 

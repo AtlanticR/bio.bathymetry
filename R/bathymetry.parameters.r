@@ -8,7 +8,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$project.root = project.datadirectory( p$project.name )
     p$libs = bioLibrary( "bio.base", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons", "bio.spacetime" )
     p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "gstat", "geoR",
-      "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",  "h5" ) ) )
+      "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",  "ff", "ffbase" ) ) )
     # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
     # use "complete" to project/downscale/upscale onto other grids/resolutions
     p = spatial.parameters( type=resolution, p=p )

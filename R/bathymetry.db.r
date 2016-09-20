@@ -878,7 +878,7 @@
 
     if ( DS %in% c("bathymetry.spacetime.inputs.data", "bathymetry.spacetime.inputs.data.redo" )) {
       #\\ DS="bathymetry.spacetime.input" is a low-level call that prepares the bathymetry data
-      #\\   for input into a hdf5 table for further processing
+      #\\   for input into a table for further processing
       fn = file.path( datadir, paste( "bathymetry", "spacetime", "input", p$spatial.domain,  "rdata", sep=".") )
       if (DS =="bathymetry.spacetime.inputs.data" ) {
         load( fn)
@@ -921,9 +921,9 @@
       landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="predictions" )
 
       # on resolution of statistics
-      p = spacetime.db( p=p, DS="filenames" )
-      Sloc = attach.big.matrix(p$descriptorfile.Sloc, path=p$tmp.datadir )
-      V = data.frame( cbind(plon=Sloc[,1], plat=Sloc[,2]) )
+      V = as.data.frame(p$ff$Sloc[])
+      names(V) = c("plon", "plat") 
+      # V = data.frame( cbind(plon=Sloc[,1], plat=Sloc[,2]) )
       V = SpatialPoints( planar2lonlat( V, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
       landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" )
     }
