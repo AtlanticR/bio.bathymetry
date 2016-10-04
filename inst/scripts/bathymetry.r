@@ -41,7 +41,7 @@
   # p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
     
   # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
-  p = spacetime( method="inla.interpolations", p=p, overwrite=TRUE,
+  p = spacetime( method="space.xy.inla", p=p, overwrite=TRUE,
     DATA=list( input=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
                output=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction") ) )
 
