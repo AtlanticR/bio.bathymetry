@@ -288,7 +288,7 @@
       # run on servers only unless your machine can handle it
       redo.bathymetry.rawdata = FALSE
       if ( redo.bathymetry.rawdata ) {
-        p = spatial.parameters( type="canada.east", p=p )
+        p = spacetime_parameters( type="canada.east", p=p )
         bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
      }
 
@@ -302,7 +302,7 @@
         area = c( "snowcrab", "SSE", "ecnasap", "canada.east" )
         for (sp in area) {
           p$spatial.domain = sp
-          p = spatial.parameters( p=p )
+          p = spacetime_parameters( p=p )
           p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
           # override defaults in gmt.parameters as additional ones are used by other systems including lattice
           p$isobaths = c( 0, seq(50, 450, by=50), seq( 500, 1000, by=100 )  ) #override defaults
@@ -320,7 +320,7 @@
         area = c( "snowcrab", "SSE", "ecnasap", "canada.east" )
         for (sp in area) {
           p$spatial.domain = sp
-          p = spatial.parameters( p=p )
+          p = spacetime_parameters( p=p )
           p = gmt.parameters(p)  # interpolation parameters ... currently using GMT's isobaths whcih are specified in gmt.parameters
           # or if you want to override the isobaths plotted define them here (but make sure they were created in the previous step)
           # p$isobaths = c( seq(50, 450, by=100)  )
@@ -333,7 +333,7 @@
       complete.bathymetry.db = FALSE
       areas = c( "canada.east", "SSE" ) # only two are currently used
       for ( sp in areas ) {
-        p = spatial.parameters( type=sp, p=p )
+        p = spacetime_parameters( type=sp, p=p )
         p = gmt.parameters(p)
         bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT's math functions ...
         bathymetry.db ( p, DS="Z.redo" )
@@ -347,13 +347,13 @@
       # "snowcrab" subsets do exist but are simple subsets of SSE
       # so only the lookuptable below is all that is important as far as bathymetry is concerned
       # both share the same initial domains + resolutions
-      p = spatial.parameters( type="snowcrab", p=p )
+      p = spacetime_parameters( type="snowcrab", p=p )
       bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
       bathymetry.db( DS="lookuptable.sse.snowcrab.redo" )
 
       # ------------------
       ## a few lattice-based maps: for SSE only right now
-      p = spatial.parameters( type="SSE" )
+      p = spacetime_parameters( type="SSE" )
       x = bathymetry.db ( p, DS="baseline" )
 
       snowcrab.area=F
@@ -772,7 +772,7 @@
 
       if ( p$spatial.domain == "snowcrab" ) {
         # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
-        Z = bathymetry.db( p=spatial.parameters( type="SSE", p=p ), DS="baseline.gmt" )
+        Z = bathymetry.db( p=spacetime_parameters( type="SSE", p=p ), DS="baseline.gmt" )
       } else {
         Z = bathymetry.db( p=p, DS="Z.planar" )
       }
@@ -796,10 +796,10 @@
       }
 
       for (domain in p$new.grids) {
-        pn = spatial.parameters( type=domain )
+        pn = spacetime_parameters( type=domain )
         if ( pn$spatial.domain == "snowcrab" ) {
           # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
-          Z = bathymetry.db( p=spatial.parameters( type="SSE", p=pn ), DS="complete", return.format = "dataframe.filtered"  )
+          Z = bathymetry.db( p=spacetime_parameters( type="SSE", p=pn ), DS="complete", return.format = "dataframe.filtered"  )
         } else {
           Z = bathymetry.db( p=pn , DS="complete", return.format = "dataframe.filtered"  )
         }
@@ -858,10 +858,10 @@
         if (file.exists(fn)) load(fn)
         return(id)
       }
-      zSSE = bathymetry.db ( p=spatial.parameters( type="SSE" ), DS="baseline" )
+      zSSE = bathymetry.db ( p=spacetime_parameters( type="SSE" ), DS="baseline" )
       zSSE$id.sse = 1:nrow(zSSE)
 
-      zsc  = bathymetry.db ( p=spatial.parameters( type="snowcrab" ), DS="baseline" )
+      zsc  = bathymetry.db ( p=spacetime_parameters( type="snowcrab" ), DS="baseline" )
       zsc$id.sc = 1:nrow(zsc)
 
       z = merge( zSSE, zsc, by =c("plon", "plat"), all.x=T, all.y=T, sort=F )
@@ -1061,11 +1061,11 @@
       grids = unique( c( p$spatial.domain, p$grids.new ))
 
       for (gr in grids ) {
-        p1 = spatial.parameters( type=gr )
+        p1 = spacetime_parameters( type=gr )
         for (vn in names(Z0)) {
           Z[[vn]] = projectRaster(
-            from =rasterize( Z0, spatial.parameters.to.raster(p0), field=vn, fun=mean),
-            to   =spatial.parameters.to.raster( p1) )
+            from =rasterize( Z0, spacetime_parameters_to_raster(p0), field=vn, fun=mean),
+            to   =spacetime_parameters_to_raster( p1) )
         }
         fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
           paste( "bathymetry", "spde_complete", p1$spatial.domain, "rdata", sep=".") )

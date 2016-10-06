@@ -11,7 +11,7 @@
   # also needs about 42 GB RAM, JC 2015
  if ( basedata.redo ) {
     # processing is  at "canada.east.highres" but temporarily drop to "canada.east to update raw data"
-    bathymetry.db ( p=spatial.parameters( p=p, type="canada.east" ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+    bathymetry.db ( p=spacetime_parameters( p=p, type="canada.east" ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
     bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
     bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
   }
@@ -41,7 +41,7 @@
   # p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
     
   # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
-  p = spacetime( method="space.xy.inla", p=p, overwrite=TRUE,
+  p = spacetime( method="xy.inla", p=p, overwrite=TRUE,
     DATA=list( input=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
                output=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction") ) )
 
@@ -66,7 +66,7 @@
   # "snowcrab" subsets do exist but are simple subsets of SSE
   # so only the lookuptable below is all that is important as far as bathymetry is concerned
   # both share the same initial domains + resolutions
-  bathymetry.db( p=spatial.parameters( type="snowcrab" ), DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
+  bathymetry.db( p=spacetime_parameters( type="snowcrab" ), DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
 
 
   ### -----------------------------------------------------------------
@@ -107,7 +107,7 @@
 
   # a few plots :
 
-  p = spatial.parameters( type="canada.east.highres", p=p )
+  p = spacetime_parameters( type="canada.east.highres", p=p )
   b = bathymetry.db( p=p, DS="complete" )
 
   vn = "z"

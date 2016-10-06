@@ -4,7 +4,7 @@ filter.bathymetry = function( DS, Z ) {
   #\\ most are in planar coords (so require plon, plat and z {depth} ) 
 
   # trim to extents
-  ps = spatial.parameters( type=DS ) # obtain (ecomod) internal projection params
+  ps = spacetime_parameters( type=DS ) # obtain (ecomod) internal projection params
   inside = which( 
     Z$plon >= ps$corners$plon[1] & Z$plon <= ps$corners$plon[2] &
     Z$plat >= ps$corners$plat[1] & Z$plat <= ps$corners$plat[2]  )

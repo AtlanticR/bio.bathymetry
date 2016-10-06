@@ -11,7 +11,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
       "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",  "ff", "ffbase" ) ) )
     # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
     # use "complete" to project/downscale/upscale onto other grids/resolutions
-    p = spatial.parameters( type=resolution, p=p )
+    p = spacetime_parameters( type=resolution, p=p )
     p = spacetime.parameters(p)  # load defaults
     # cluster definition
     p$clusters = rep( "localhost", nc )
@@ -19,10 +19,6 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
   }
 
   if (DS=="bio.bathymetry.spacetime") {
-    p$rootdir = file.path( p$project.root, "spacetime" )
-    p$fn.P =  file.path( p$rootdir, paste( "spacetime", "predictions", p$spatial.domain, "rdata", sep=".") )
-    p$fn.S =  file.path( p$rootdir, paste( "spacetime", "statistics", p$spatial.domain, "rdata", sep=".") )
-    p$fn.results.covar =  file.path( p$rootdir, paste( "spatial", "covariance", p$spatial.domain, "rdata", sep=".") )
     p$variogram.engine = "gstat"  # "geoR" seg faults frequently ..
     p$dist.mwin = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
@@ -44,11 +40,11 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime_interpolate_local_inla (below)
     p$spacetime.family = "gaussian"
     p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
-    
+
     # if not in one go, then the value must be reconstructed from the correct elements:
-    p$sbbox = spacetime.db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
+    p$sbbox = spacetime_db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
     p$spacetime.stats.boundary.redo = FALSE ## estimate boundart of data to speed up stats collection? Do not need to redo if bounds have already been determined
-    
+
     p$nPreds = p$nplons * p$nplats
      p$spacetime.posterior.extract = function(s, rnm) {
       # rnm are the rownames that will contain info about the indices ..
