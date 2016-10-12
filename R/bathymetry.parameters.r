@@ -19,7 +19,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
   }
 
   if (DS=="bio.bathymetry.spacetime") {
-    p$variogram.engine = "gstat"  # "geoR" seg faults frequently ..
+    p$spacetime_variogram_engine = "gstat"  # "geoR" seg faults frequently ..
     p$spacetime.prediction.dist.min = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
     p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2 ) # local block search fractions  -- need to adjust based upon data density
