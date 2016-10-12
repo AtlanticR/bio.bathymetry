@@ -8,11 +8,11 @@ Depends: R (>= 3.0.0)
 Imports: 
   devtools, 
   bio.base,
-  bio.coastline,
   bio.polygons,
   bio.utilities
 Suggests: knitr, rmarkdown,
-  bio.spacetime
+  bio.spacetime, 
+  bio.coastline
 VignetteBuilder: knitr
 License: MIT
 LazyData: true
