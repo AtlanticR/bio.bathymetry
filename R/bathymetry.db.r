@@ -904,8 +904,7 @@
         load( fn)
         return( B )
       }
-      B = expand.grid( p$plons, p$plats )
-      attr( B, "out.attrs") = NULL
+      B = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE)
       names( B ) = c("plon", "plat")
       save( B, file=fn, compress=TRUE)
       return(fn)

@@ -20,7 +20,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
   if (DS=="bio.bathymetry.spacetime") {
     p$spacetime_variogram_engine = "gstat"  # "geoR" seg faults frequently ..
-    p$spacetime.prediction.dist.min = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+    p$spacetime_prediction_dist_min = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
     p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2 ) # local block search fractions  -- need to adjust based upon data density
     p$mesh.boundary.resolution = 150
@@ -43,7 +43,6 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
     # if not in one go, then the value must be reconstructed from the correct elements:
     p$sbbox = spacetime_db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
-    p$spacetime.stats.boundary.redo = FALSE ## estimate boundart of data to speed up stats collection? Do not need to redo if bounds have already been determined
 
     p$nPreds = p$nplons * p$nplats
      p$spacetime.posterior.extract = function(s, rnm) {
