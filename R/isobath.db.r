@@ -1,7 +1,7 @@
 
 isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+init=epsg:4326" ) {
   #\\ create or return isobaths and coastlines/coast polygons
-
+  require(bio.spacetime)
   if (DS %in% c( "isobath", "isobath.redo" )) {
     fn.iso = file.path( project.datadirectory("bio.bathymetry", "isobaths" ), "isobaths.rdata" )
     isobaths = NULL
