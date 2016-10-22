@@ -8,7 +8,7 @@
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
 
     if ( DS=="gebco") {
-      library(RNetCDF)
+      #library(RNetCDF)
       # request at: https://www.bodc.ac.uk/data/online_delivery/gebco/ [ jae.choi@dfo ] ... / gate.gate
       # extent: (WSEN) = -72,36,-45.,53
       # and saved as: bio.data/bathymetry/data/gebco.{xyz,nc}  # still waiting
