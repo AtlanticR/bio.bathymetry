@@ -38,20 +38,18 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$spacetime_covariate_modelformula = p$spacetime_engine_modelformula
 
     p$variables = list( Y="z", LOCS=c("plon", "plat") ) 
-    p$spacetime_family = gaussian
-    p$spacetime_family$linkfun = function(mu){ log(mu + 1000) }
-    p$spacetime_family$linkinv = function(eta){ exp(eta) - 1000 }
-    ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude
-    # or to make your own
-    # p$spacetime_family = function(offset=0) {
-    #   structure(list(
-    #     linkfun = function(mu) mu + offset, 
-    #     linkinv = function(eta) mu - offset,
-    #     mu.eta = function(eta) NA, 
-    #     valideta = function(eta) TRUE, 
-    #     name = paste0("logexp(", offset, ")") ),
-    #     class = "link-glm" )
-    #
+
+    ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
+    log_gaussian_offset = function(offset=0) {
+      structure(list(
+        linkfun = function(mu) log(mu + offset), 
+        linkinv = function(eta) exp(eta) - offset,
+        mu.eta = function(eta) NA, 
+        valideta = function(eta) TRUE, 
+        name = paste0("logexp(", offset, ")") ),
+        class = "link-glm" )
+    }
+    p$spacetime_family = log_gaussian_offset(1000)
     
     p$dist.max = 50 # length scale (km) of local analysis .. for acceptance into the local analysis/model
     p$dist.min = 2 # lower than this .. subsampling occurs
