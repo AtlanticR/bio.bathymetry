@@ -876,6 +876,14 @@
 
     # ----------------
 
+    if ( DS == "bathymetry.spacetime.data" ) {
+      return( list(
+        input =bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
+        output=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction") ) ) 
+    }
+
+    # ----------------
+
     if ( DS %in% c("bathymetry.spacetime.inputs.data", "bathymetry.spacetime.inputs.data.redo" )) {
       #\\ DS="bathymetry.spacetime.input" is a low-level call that prepares the bathymetry data
       #\\   for input into a table for further processing

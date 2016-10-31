@@ -20,36 +20,13 @@
   ### -----------------------------------------------------------------
   p = bio.bathymetry::bathymetry.parameters( p=p, DS="bio.bathymetry.spacetime" )
 
-  # covariance only
-  # if doing just spatial.covariance .. not as much ram is required
+  # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
 
   # p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) ) 
-  p$clusters ="localhost"
-  p = spacetime( method="spatial.covariance",
-    DATA=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
-    p=p, overwrite=TRUE )
+  p$clusters = rep("localhost", 24)
+  p = spacetime( DATA='bathymetry.db( p=p, DS="bathymetry.spacetime.data" )',  p=p, storage.backend="bigmemory.ram" )
 
-      # to see the raw saved versions of the the results:
-      covSp = spacetime( p=p, DS="spatial.covariance" ) # load saved data
-
-
-
-  ### -----------------------------------------------------------------
-  # do  not use all CPU's as INLA itself is partially run in parallel
-  # RAM reqiurements are a function of data density and mesh density .. currently ~ 12 GB / run
-  p$clusters ="localhost"
-  # p$clusters = c( rep( "nyx", 5 ), rep ("tartarus", 5), rep("kaos", 5 ) )
-    
-  # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
-  p = spacetime( method="xy.inla", p=p, overwrite=TRUE,
-    DATA=list( input=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
-               output=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction") ) )
-
-      # to see the raw saved versions of the the results:
-      predSp = spacetime( p=p, DS="inla.predictions" )
-      statSp = spacetime( p=p, DS="inla.statistics" )
-   
-
+  
     # bring together stats and predictions and any other required computations: slope and curvature
     bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )
       # B = bathymetry( p=p, DS="bathymetry.spacetime.finalize" )     # to see the assimilated data:

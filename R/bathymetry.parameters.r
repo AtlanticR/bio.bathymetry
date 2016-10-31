@@ -20,40 +20,54 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
   if (DS=="bio.bathymetry.spacetime") {
     p$spacetime_variogram_engine = "gstat"  # "geoR" seg faults frequently ..
-    p$spacetime_prediction_dist_min = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-    p$upsampling = c( 1.1, 1.2, 1.5, 2 )  # local block search fractions
-    p$downsampling = c( 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.25, 0.2 ) # local block search fractions  -- need to adjust based upon data density
-    p$mesh.boundary.resolution = 150
-    p$mesh.boundary.convex = -0.025
+    p$spacetime_rsquared_threshold = 0.3 # lower threshold
+    p$spacetime_distance_prediction = 5 # this is a half window km
+    p$spacetime_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
 
-    p$variables = list( Y="z", LOCS=c("plon", "plat") )
-    p$spacetime.link = function( X ) { log(X + 1000) }  ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude
-    p$spacetime.invlink = function( X ) { exp(X) - 1000 }
-    p$dist.max = 100 # length scale (km) of local analysis .. for acceptance into the local analysis/model
-    p$dist.min = 75 # lower than this .. subsampling occurs
-    p$dist.pred = 0.95 # % of dist.max where **predictions** are retained (to remove edge effects)
+    p$spacetime_variogram_engine = "gstat"  # "geoR" seg faults frequently ..
+    p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale (dist.max, dist.min)/2 to try in local block search
+
+    p$spacetime_engine = "gam" # see model form in spacetime.r (method="xyts")
+    p$spacetime_engine_modelformula = formula( 
+      z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=40, bs="ts") )  
+    # p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime___inla
+ 
+    p$spacetime_model_distance_weighted = TRUE
+
+    p$spacetime_covariate_modeltype="gam"
+    p$spacetime_covariate_modelformula = p$spacetime_engine_modelformula
+
+    p$variables = list( Y="z", LOCS=c("plon", "plat") ) 
+    p$spacetime_family = gaussian
+    p$spacetime_family$linkfun = function(mu) log(mu + 1000) 
+    p$spacetime_family$linkinv = function(eta) exp(eta) - 1000
+    ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude
+    # or to make your own
+    # p$spacetime_family = function(offset=0) {
+    #   structure(list(
+    #     linkfun = function(mu) mu + offset, 
+    #     linkinv = function(eta) mu - offset,
+    #     mu.eta = function(eta) NA, 
+    #     valideta = function(eta) TRUE, 
+    #     name = paste0("logexp(", offset, ")") ),
+    #     class = "link-glm" )
+    #
+    
+    p$dist.max = 50 # length scale (km) of local analysis .. for acceptance into the local analysis/model
+    p$dist.min = 2 # lower than this .. subsampling occurs
     p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
     p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
-    p$expected.range = 50 #+units=km km , with dependent var on log scale
-    p$expected.sigma = 1e-1  # spatial standard deviation (partial sill) .. on log scale
-    p$spatial.field.name = "spatial.field"  # name used in formula to index the spatal random field
-    p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime_interpolate_local_inla (below)
-    p$spacetime.family = "gaussian"
-    p$spacetime.outputs = c( "predictions.projected", "statistics" ) # "random.field", etc.
-
+  
     # if not in one go, then the value must be reconstructed from the correct elements:
     p$sbbox = spacetime_db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
-    p$nPreds = p$nplons * p$nplats
-     p$spacetime.posterior.extract = function(s, rnm) {
-      # rnm are the rownames that will contain info about the indices ..
-      # optimally the grep search should only be done once but doing so would
-      # make it difficult to implement in a simple structure/manner ...
-      # the overhead is minimal relative to the speed of modelling and posterior sampling
-      i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
-      i_spatial.field = grep("spatial.field", rnm, fixed=TRUE )
-      return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
-    }
+    p$non_convex_hull_alpha = 20  # radius in distance units (km) to use for determining boundaries
+    p$theta = 5 # FFT kernel bandwidth (SD of kernel) required for method "harmonic.1/kernel.density"
+    p$nsd = 6 # number of SD distances to pad boundaries with 0 for FFT  required in method  "harmonic.1/kernel.density
+
+    p$spacetime.noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
+    p$quantile_bounds = c(0.001, 0.999) # remove these extremes in interpolations
+
     return(p)
   }
 
