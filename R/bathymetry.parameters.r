@@ -12,7 +12,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
     # use "complete" to project/downscale/upscale onto other grids/resolutions
     p = spacetime_parameters( type=resolution, p=p )
-    p = spacetime.parameters(p)  # load defaults
+    p = spacetime_parameters(p)  # load defaults
     # cluster definition
     p$clusters = rep( "localhost", nc )
     return(p)
