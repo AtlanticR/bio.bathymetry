@@ -39,8 +39,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
     p$variables = list( Y="z", LOCS=c("plon", "plat") ) 
     p$spacetime_family = gaussian
-    p$spacetime_family$linkfun = function(mu) log(mu + 1000) 
-    p$spacetime_family$linkinv = function(eta) exp(eta) - 1000
+    p$spacetime_family$linkfun = function(mu){ log(mu + 1000) }
+    p$spacetime_family$linkinv = function(eta){ exp(eta) - 1000 }
     ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one -order of magnitude
     # or to make your own
     # p$spacetime_family = function(offset=0) {
