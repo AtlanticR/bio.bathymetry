@@ -912,8 +912,8 @@
         load( fn)
         return( B )
       }
-      B = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE)
-      names( B ) = c("plon", "plat")
+      B = list( LOCS = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE) )
+      names( B$LOCS ) = c("plon", "plat")
       save( B, file=fn, compress=TRUE)
       return(fn)
     }
