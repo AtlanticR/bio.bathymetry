@@ -25,7 +25,8 @@
   # p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) ) 
   p$clusters = rep("localhost", 24)
   p = spacetime( DATA='bathymetry.db( p=p, DS="bathymetry.spacetime.data" )',  p=p, storage.backend="bigmemory.ram", boundary=FALSE )  # boundary def takes too long .. too much data to process
-  
+  # 1.6 GB storage of data with bimemory.ram in parent
+
   # bring together stats and predictions and any other required computations: slope and curvature
   bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )
   # B = bathymetry( p=p, DS="bathymetry.spacetime.finalize" )     # to see the assimilated data:
