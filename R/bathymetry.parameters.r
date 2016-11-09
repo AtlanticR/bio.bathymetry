@@ -60,8 +60,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$sbbox = spacetime_db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
     p$non_convex_hull_alpha = 50  # radius in distance units (km) to use for determining boundaries
-    p$theta = 5 # FFT kernel bandwidth (SD of kernel) required for method "harmonic.1/kernel.density"
-    p$nsd = 6 # number of SD distances to pad boundaries with 0 for FFT  required in method  "harmonic.1/kernel.density
+    p$theta = p$pres # FFT kernel bandwidth (SD of kernel) required for method "harmonic.1/kernel.density"
 
     p$spacetime.noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$quantile_bounds = c(0.001, 0.999) # remove these extremes in interpolations
