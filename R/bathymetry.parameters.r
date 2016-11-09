@@ -27,12 +27,19 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$spacetime_variogram_engine = "gstat"  # "geoR" seg faults frequently ..
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale (dist.max, dist.min)/2 to try in local block search
 
-    p$spacetime_engine = "gam" # see model form in spacetime.r (method="xyts")
-    p$spacetime_engine_modelformula = formula( 
-      z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=40, bs="ts") )  
-    # p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime___inla
- 
-    p$spacetime_model_distance_weighted = TRUE
+
+    if (0) {
+      # GAM are overly smooth
+      p$spacetime_engine = "gam" # see model form in spacetime.r (method="xyts")
+      p$spacetime_engine_modelformula = formula( 
+        z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=50, bs="ts") )  
+      # p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime___inla
+    }
+
+    p$spacetime_engine = "kernel.density" 
+    p$spacetime_engine_modelformula = NA # no need for formulae for kernel.density
+
+    p$spacetime_model_distance_weighted = TRUE  # not required for kernel.density
 
     p$spacetime_covariate_modeltype="gam"
     p$spacetime_covariate_modelformula = p$spacetime_engine_modelformula
