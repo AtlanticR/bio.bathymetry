@@ -33,7 +33,12 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
       p$spacetime_engine = "gam" # see model form in spacetime.r (method="xyts")
       p$spacetime_engine_modelformula = formula( 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=50, bs="ts") )  
-      # p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covariance model .. defined in spacetime___inla
+      # p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in spacetime___inla
+      
+      p$spacetime_engine = "bayesx"
+      p$spacetime_engine_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
+      p$bayesx.method="MCMC"
+
     }
 
     p$spacetime_engine = "kernel.density" 
