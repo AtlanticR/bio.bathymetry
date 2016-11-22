@@ -19,14 +19,22 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
   }
 
   if (DS=="bio.bathymetry.spacetime") {
-    p$spacetime_variogram_engine = "gstat"  # "geoR" seg faults frequently ..
+
     p$spacetime_rsquared_threshold = 0.3 # lower threshold
     p$spacetime_distance_prediction = 5 # this is a half window km
     p$spacetime_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-
-    p$spacetime_variogram_engine = "gstat"  # "geoR" seg faults frequently ..
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale (dist.max, dist.min)/2 to try in local block search
 
+
+    if ( p$spacetime_engine =="gaussianprocess2Dt" ) {
+      p$fields.cov.function = "stationary.cov"  #
+      # p$fields.cov.function = "stationary.taper.cov"  # Wendland tapering
+      if (!exists("fields.Covariance", p)) p$fields.Covariance="Exponential" # note that "Rad.cov" is TPS
+      if (!exists("fields.cov.args", p) & p$fields.Covariance=="Matern") {
+        if (!exists("fields.nu", p)) p$fields.nu=0.5  # note: this is the smoothness or shape parameter (fix at 0.5 if not calculated or given -- exponential)   
+        p$fields.cov.args=list( Covariance=p$fields.Covariance, smoothness=p$fields.nu ) # this is exponential covariance 
+      }
+    }
 
     if (0) {
       # GAM are overly smooth
@@ -37,11 +45,11 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
       
       p$spacetime_engine = "bayesx"
       p$spacetime_engine_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
-      p$bayesx.method="MCMC"
+      p$bayesx.method="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
 
     }
 
-    p$spacetime_engine = "kernel.density" 
+    p$spacetime_engine = "kernel.density"  # about 5 X faster than bayesx-mcmc method
     p$spacetime_engine_modelformula = NA # no need for formulae for kernel.density
 
     p$spacetime_model_distance_weighted = TRUE  # not required for kernel.density

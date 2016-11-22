@@ -22,6 +22,7 @@
 
   # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
 
+  # ~ 17.2 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method
   # p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) ) 
   p$clusters = rep("localhost", 24)
   p = spacetime( DATA='bathymetry.db( p=p, DS="bathymetry.spacetime.data" )',  p=p, storage.backend="bigmemory.ram", boundary=FALSE )  # boundary def takes too long .. too much data to process
