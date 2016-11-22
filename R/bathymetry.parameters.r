@@ -54,7 +54,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
       p$spacetime_model_distance_weighted = TRUE  
     }
 
-    if ( p$spacetime_engine == "bayesx" )
+    if ( p$spacetime_engine == "bayesx" ) {
       p$spacetime_engine_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
       p$bayesx.method="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
       p$spacetime_model_distance_weighted = TRUE  
