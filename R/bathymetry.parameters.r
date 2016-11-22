@@ -20,6 +20,11 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
   if (DS=="bio.bathymetry.spacetime") {
 
+    # p$spacetime_engine = "kernel.density"  # about 5 X faster than bayesx-mcmc method
+    p$spacetime_engine = "gaussianprocess2Dt"
+    # p$spacetime_engine = "gam"
+    # p$spacetime_engine = "bayesx"
+
     p$spacetime_rsquared_threshold = 0.3 # lower threshold
     p$spacetime_distance_prediction = 5 # this is a half window km
     p$spacetime_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
@@ -36,23 +41,24 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
       }
     }
 
-    if (0) {
-      # GAM are overly smooth
-      p$spacetime_engine = "gam" # see model form in spacetime.r (method="xyts")
-      p$spacetime_engine_modelformula = formula( 
-        z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=50, bs="ts") )  
-      # p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in spacetime___inla
-      
-      p$spacetime_engine = "bayesx"
-      p$spacetime_engine_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
-      p$bayesx.method="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
-
+    if (p$spacetime_engine == "kernel.density") {
+      p$spacetime_engine_modelformula = NA # no need for formulae for kernel.density
     }
 
-    p$spacetime_engine = "kernel.density"  # about 5 X faster than bayesx-mcmc method
-    p$spacetime_engine_modelformula = NA # no need for formulae for kernel.density
+    if (p$spacetime_engine == "gam") {
+      # GAM are overly smooth
+       # see model form in spacetime.r (method="xyts")
+      p$spacetime_engine_modelformula = formula( 
+        z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
+      # p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in spacetime___inla
+      p$spacetime_model_distance_weighted = TRUE  
+    }
 
-    p$spacetime_model_distance_weighted = TRUE  # not required for kernel.density
+    if ( p$spacetime_engine == "bayesx" )
+      p$spacetime_engine_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
+      p$bayesx.method="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
+      p$spacetime_model_distance_weighted = TRUE  
+    }
 
     p$spacetime_covariate_modeltype="gam"
     p$spacetime_covariate_modelformula = p$spacetime_engine_modelformula
