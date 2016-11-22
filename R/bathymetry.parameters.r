@@ -20,10 +20,6 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
   if (DS=="bio.bathymetry.spacetime") {
 
-    # p$spacetime_engine = "kernel.density"  # about 5 X faster than bayesx-mcmc method
-    p$spacetime_engine = "gaussianprocess2Dt"
-    # p$spacetime_engine = "gam"
-    # p$spacetime_engine = "bayesx"
 
     p$spacetime_rsquared_threshold = 0.3 # lower threshold
     p$spacetime_distance_prediction = 5 # this is a half window km
