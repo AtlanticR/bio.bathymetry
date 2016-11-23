@@ -18,6 +18,12 @@
   
   
   ### -----------------------------------------------------------------
+
+  p$spacetime_engine = "kernel.density"  # about 5 X faster than bayesx-mcmc method .. perferred for now
+  # p$spacetime_engine = "gaussianprocess2Dt"  # too slow for the data density  
+  # p$spacetime_engine = "gam" # 2nd choice
+  # p$spacetime_engine = "bayesx" # too slow
+  
   p = bio.bathymetry::bathymetry.parameters( p=p, DS="bio.bathymetry.spacetime" )
 
   # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?

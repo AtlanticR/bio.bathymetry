@@ -28,8 +28,9 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
 
     if ( p$spacetime_engine =="gaussianprocess2Dt" ) {
+      # too slow to use right now
       p$fields.cov.function = "stationary.cov"  #
-      # p$fields.cov.function = "stationary.taper.cov"  # Wendland tapering
+      p$fields.cov.function = "stationary.taper.cov"  # Wendland tapering
       if (!exists("fields.Covariance", p)) p$fields.Covariance="Exponential" # note that "Rad.cov" is TPS
       if (!exists("fields.cov.args", p) & p$fields.Covariance=="Matern") {
         if (!exists("fields.nu", p)) p$fields.nu=0.5  # note: this is the smoothness or shape parameter (fix at 0.5 if not calculated or given -- exponential)   
@@ -38,15 +39,14 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     }
 
     if (p$spacetime_engine == "kernel.density") {
+      # perferred approach right now
       p$spacetime_engine_modelformula = NA # no need for formulae for kernel.density
     }
 
     if (p$spacetime_engine == "gam") {
-      # GAM are overly smooth
-       # see model form in spacetime.r (method="xyts")
+      # GAM are overly smooth .. adding more knots might be good but speed is the cost .. k=50 to 100 seems to work nicely
       p$spacetime_engine_modelformula = formula( 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
-      # p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in spacetime___inla
       p$spacetime_model_distance_weighted = TRUE  
     }
 
@@ -55,6 +55,14 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
       p$bayesx.method="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
       p$spacetime_model_distance_weighted = TRUE  
     }
+
+    if (p$spacetime_engine == "inla" ){
+      # old method .. took a month to finish .. results look good but very slow
+      p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in spacetime___inla
+    }
+
+
+    p$spacetime_engine.variogram = "fast"  # other options might work depending upon data density but GP are esp slow .. too slow for bathymetry
 
     p$spacetime_covariate_modeltype="gam"
     p$spacetime_covariate_modelformula = p$spacetime_engine_modelformula
