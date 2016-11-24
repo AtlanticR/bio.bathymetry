@@ -951,16 +951,20 @@
       nr = p$nplons
       nc = p$nplats
 
-      BP = spacetime( p=p, DS="inla.predictions" )
-      BP = BP[, c( "plon", "plat", "mean", "sdev")]
-      names(BP) = c( "plon", "plat", "z", "Z.predictionSD") # really Z.mean but for historical compatibility "z"
+      B = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE) 
+      names( B ) = c("plon", "plat")
+      Bmean = spacetime_db( p, DS="spacetime.predictions", ret="mean" ) 
+      Bsd = spacetime_db( p, DS="spacetime.predictions", ret="sd" ) 
+      B = cbind(B, Bmean, Bsd)
+      rm (Bmean, Bsd); gc()
+      names(B) = c( "plon", "plat", "z", "Z.predictionSD") # really Z.mean but for historical compatibility "z"
 
       # remove land
       oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
-      BP$z[oc] = NA
-      BP$Z.predictionSD[oc] = NA
+      B$z[oc] = NA
+      B$Z.predictionSD[oc] = NA
 
-      Bmn = matrix( data=BP$z, nrow=nr, ncol=nc )  # means
+      Bmn = matrix( data=B$z, nrow=nr, ncol=nc )  # means
 
       # first order central differences but the central term drops out:
       # diffr = ( ( Bmn[ 1:(nr-2), ] - Bmn[ 2:(nr-1), ] ) + ( Bmn[ 2:(nr-1), ] - Bmn[ 3:nr, ] ) ) / 2
@@ -973,7 +977,7 @@
       dZ = rbind( dZ[1,], dZ, dZ[nrow(dZ)] )  # top and last rows are copies .. dummy value to keep dim correct
       dZ = cbind( dZ[,1], dZ, dZ[,ncol(dZ)] )
 
-      BP$dZ =  abs(c(dZ))
+      B$dZ =  abs(c(dZ))
 
       # gradients
       ddiffr =  dZ[ 1:(nr-2), ] - dZ[ 3:nr, ]
@@ -983,12 +987,14 @@
       ddZ = ( ddiffr[ ,2:(nc-1) ] + ddiffc[ 2:(nr-1), ] ) / 2
       ddZ = rbind( ddZ[1,], ddZ, ddZ[nrow(ddZ)] )  # top and last rows are copies .. dummy value to keep dim correct
       ddZ = cbind( ddZ[,1], ddZ, ddZ[,ncol(ddZ)] )
-      BP$ddZ = abs(c(ddZ))
+      B$ddZ = abs(c(ddZ))
 
       # merge into statistics
-      BS = spacetime( p=p, DS="inla.statistics" )
-      B = cbind( BP, BS )
-      names(B) = c( names(BP), "Z.rangeMode", "Z.rangeSD", "Z.spatialSD", "Z.observationSD" )
+      BS = spacetime_db( p, DS="stats.to.prediction.grid" ) 
+      B = cbind( B, BS )
+      rm (BS); gc()
+
+      names(B) = c( names(B), p$statvars )
 
       save( B, file=fn, compress=TRUE)
       return(fn)
