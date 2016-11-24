@@ -26,15 +26,28 @@
   
   p = bio.bathymetry::bathymetry.parameters( p=p, DS="bio.bathymetry.spacetime" )
 
-  # bathymetry.db( DS="landmasks.create", p=p ) # re-run only if default resolution is altered ... very slow 1 hr?
+  landmask.redo= FALSE
+  if (landmask.redo) {
+    # re-run only if default resolution is altered ... very slow 1 hr?
+    bathymetry.db( DS="landmasks.create", p=p ) 
+  }
 
-  # 2.2GB/process: bigmemory.ram: ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016
-  # p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 24 ) ) 
-  p$clusters = rep("localhost", 8)
-  p = spacetime( DATA='bathymetry.db( p=p, DS="bathymetry.spacetime.data" )',  
-    p=p, storage.backend="bigmemory.ram", boundary=FALSE )  
+  # 2.2GB/process and 2.2 GB in parent 
   # boundary def takes too long .. too much data to process -- skip
-  # 2.2 GB storage of data with bimemory.ram in parent
+  method = "bigmemory.ram"
+  if (method=="bigmemory.ram") {
+    # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016
+    p$clusters = rep("localhost", 8)
+    data.call = 'bathymetry.db( p=p, DS="bathymetry.spacetime.data" )'
+    p = spacetime( DATA=data.call, p=p, storage.backend="bigmemory.ram", boundary=FALSE )  
+  }
+
+  if (method=="bigmemory.filebacked") {
+    # ~ XX hr with 68, 3 Ghz cpus on beowulf using kernel.density method jc: 2016
+    p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 20 ) ) 
+    p = spacetime( DATA=data.call, p=p, storage.backend="bigmemory.filebacked", boundary=FALSE )  
+  }
+
 
   # bring together stats and predictions and any other required computations: slope and curvature
   bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )
