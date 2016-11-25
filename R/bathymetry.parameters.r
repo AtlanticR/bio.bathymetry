@@ -20,12 +20,12 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
   if (DS=="bio.bathymetry.spacetime") {
 
-
     p$spacetime_rsquared_threshold = 0.3 # lower threshold
     p$spacetime_distance_prediction = 5 # this is a half window km
     p$spacetime_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-    p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale (dist.max, dist.min)/2 to try in local block search
+    p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale to try in local block search
 
+    if (!exists("spacetime_engine", p)) p$spacetime_engine="kernel.density"  # currently the perferred approach 
 
     if ( p$spacetime_engine =="gaussianprocess2Dt" ) {
       # too slow to use right now
@@ -39,7 +39,6 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     }
 
     if (p$spacetime_engine == "kernel.density") {
-      # perferred approach right now
       p$spacetime_engine_modelformula = NA # no need for formulae for kernel.density
     }
 
@@ -61,29 +60,15 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
       p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in spacetime___inla
     }
 
-
-    p$spacetime_engine.variogram = "fast"  # other options might work depending upon data density but GP are esp slow .. too slow for bathymetry
-
-    p$spacetime_covariate_modeltype="gam"
-    p$spacetime_covariate_modelformula = p$spacetime_engine_modelformula
-
+    # other options might work depending upon data density but GP are esp slow .. too slow for bathymetry
+    if (!exists("spacetime_engine.variogram", p)) p$spacetime_engine.variogram = "fast"
+    
     p$variables = list( Y="z", LOCS=c("plon", "plat") ) 
 
     ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
-    log_gaussian_offset = function(offset=0) {
-      structure(list(
-        linkfun = function(mu) log(mu + offset), 
-        linkinv = function(eta) exp(eta) - offset,
-        mu.eta = function(eta) NA, 
-        valideta = function(eta) TRUE, 
-        name = paste0("logexp(", offset, ")") ),
-        class = "link-glm" )
-    }
-    p$spacetime_family = log_gaussian_offset(1000)
+    p$spacetime_family = bio.spacetime::log_gaussian_offset(1000)
     
-    p$dist.max = 50 # length scale (km) of local analysis .. for acceptance into the local analysis/model
-    p$dist.min = 2 # lower than this .. subsampling occurs
-    p$n.min = 30 # n.min/n.max changes with resolution: at p$pres=0.25, p$dist.max=25: the max count expected is 40000
+    p$n.min = 30 # n.min/n.max changes with resolution
     p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
   
     # if not in one go, then the value must be reconstructed from the correct elements:
