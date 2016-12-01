@@ -25,7 +25,9 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$spacetime_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale to try in local block search
 
-    if (!exists("spacetime_engine", p)) p$spacetime_engine="kernel.density"  # currently the perferred approach 
+    p$spacetime_family = bio.spacetime::log_gaussian_offset(1000)
+
+    if (!exists("spacetime_engine", p)) p$spacetime_engine="inla"  # currently the perferred approach 
 
     if ( p$spacetime_engine =="gaussianprocess2Dt" ) {
       # too slow to use right now
@@ -36,37 +38,52 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
         if (!exists("fields.nu", p)) p$fields.nu=0.5  # note: this is the smoothness or shape parameter (fix at 0.5 if not calculated or given -- exponential)   
         p$fields.cov.args=list( Covariance=p$fields.Covariance, smoothness=p$fields.nu ) # this is exponential covariance 
       }
-    }
-
-    if (p$spacetime_engine == "kernel.density") {
+    } else if (p$spacetime_engine == "kernel.density") {
+      # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method, bigmemory-filebacked jc: 2016 
+      # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method RAM based jc: 2016
       p$spacetime_engine_modelformula = NA # no need for formulae for kernel.density
-    }
-
-    if (p$spacetime_engine == "gam") {
+    
+    } else if (p$spacetime_engine == "gam") {
       # GAM are overly smooth .. adding more knots might be good but speed is the cost .. k=50 to 100 seems to work nicely
+      ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
       p$spacetime_engine_modelformula = formula( 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
       p$spacetime_model_distance_weighted = TRUE  
-    }
-
-    if ( p$spacetime_engine == "bayesx" ) {
+    
+    } else if ( p$spacetime_engine == "bayesx" ) {
+    
+      ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
       p$spacetime_engine_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
       p$bayesx.method="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
       p$spacetime_model_distance_weighted = TRUE  
-    }
-
-    if (p$spacetime_engine == "inla" ){
+    
+    } else if (p$spacetime_engine == "inla" ){
+      
       # old method .. took a month to finish .. results look good but very slow
+      ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
+      p$inla_family = "gaussian"
+      p$inla.alpha = 0.5 # bessel function curviness .. ie "nu"
       p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in spacetime___inla
+      p$spacetime.posterior.extract = function(s, rnm) {
+        # rnm are the rownames that will contain info about the indices ..
+        # optimally the grep search should only be done once but doing so would
+        # make it difficult to implement in a simple structure/manner ...
+        # the overhead is minimal relative to the speed of modelling and posterior sampling
+        i_intercept = grep("intercept", rnm, fixed=TRUE ) # matching the model index "intercept" above .. etc
+        i_spatial.field = grep("spatial.field", rnm, fixed=TRUE )
+        return(  s$latent[i_intercept,1] + s$latent[ i_spatial.field,1] )
+      }
+    
+    } else {
+
+      message( "The specified spacetime_engine is not tested/supported ... you are on your own ;) ..." )
+
     }
 
     # other options might work depending upon data density but GP are esp slow .. too slow for bathymetry
     if (!exists("spacetime_engine.variogram", p)) p$spacetime_engine.variogram = "fast"
     
     p$variables = list( Y="z", LOCS=c("plon", "plat") ) 
-
-    ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
-    p$spacetime_family = bio.spacetime::log_gaussian_offset(1000)
     
     p$n.min = 30 # n.min/n.max changes with resolution
     p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time

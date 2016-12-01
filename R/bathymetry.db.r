@@ -878,8 +878,8 @@
 
     if ( DS == "bathymetry.spacetime.data" ) {
       return( list(
-        input =bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ), 
-        output=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction") ) ) 
+        input =bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ),
+        output=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction") ) )
     }
 
     # ----------------
@@ -929,7 +929,7 @@
 
       # on resolution of statistics
       V = as.data.frame(p$ff$Sloc[])
-      names(V) = c("plon", "plat") 
+      names(V) = c("plon", "plat")
       # V = data.frame( cbind(plon=Sloc[,1], plat=Sloc[,2]) )
       V = SpatialPoints( planar2lonlat( V, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
       landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" )
@@ -951,10 +951,10 @@
       nr = p$nplons
       nc = p$nplats
 
-      B = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE) 
+      B = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE)
       names( B ) = c("plon", "plat")
-      Bmean = spacetime_db( p, DS="spacetime.predictions", ret="mean" ) 
-      Bsd = spacetime_db( p, DS="spacetime.predictions", ret="sd" ) 
+      Bmean = spacetime_db( p, DS="spacetime.prediction", ret="mean" )
+      Bsd = spacetime_db( p, DS="spacetime.prediction", ret="sd" )
       B = cbind(B, Bmean, Bsd)
       rm (Bmean, Bsd); gc()
       names(B) = c( "plon", "plat", "z", "Z.predictionSD") # really Z.mean but for historical compatibility "z"
@@ -990,7 +990,7 @@
       B$ddZ = abs(c(ddZ))
 
       # merge into statistics
-      BS = spacetime_db( p, DS="stats.to.prediction.grid" ) 
+      BS = spacetime_db( p, DS="stats.to.prediction.grid" )
       B = cbind( B, BS )
       rm (BS); gc()
 

@@ -20,9 +20,10 @@
   ### -----------------------------------------------------------------
 
   p$spacetime_engine = "kernel.density"  # about 5 X faster than bayesx-mcmc method .. perferred for now
+  # p$spacetime_engine = "inla"  # about 5 X faster than bayesx-mcmc method .. perferred for now
   # p$spacetime_engine = "gaussianprocess2Dt"  # too slow for the data density  
   # p$spacetime_engine = "gam" # 2nd choice
-  # p$spacetime_engine = "bayesx" # too slow
+  # p$spacetime_eng ine = "bayesx" # too slow
   
   p = bio.bathymetry::bathymetry.parameters( p=p, DS="bio.bathymetry.spacetime" )
 
@@ -43,7 +44,7 @@
   }
 
   if (method=="bigmemory.filebacked") {
-    # ~ XX hr with 68, 3 Ghz cpus on beowulf using kernel.density method jc: 2016
+    # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method jc: 2016
     p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 20 ) ) 
     p = spacetime( DATA=data.call, p=p, storage.backend="bigmemory.filebacked", boundary=FALSE )  
   }
