@@ -19,10 +19,10 @@
   
   ### -----------------------------------------------------------------
 
-  p$sthm_engine = "kernel.density"  # about 5 X faster than bayesx-mcmc method .. perferred for now
-  # p$sthm_engine = "inla"  # about 5 X faster than bayesx-mcmc method .. perferred for now
-  # p$sthm_engine = "gaussianprocess2Dt"  # too slow for the data density  
-  # p$sthm_engine = "gam" # 2nd choice
+  p$sthm_local_modelengine = "kernel.density"  # about 5 X faster than bayesx-mcmc method .. perferred for now
+  # p$sthm_local_modelengine = "inla"  # about 5 X faster than bayesx-mcmc method .. perferred for now
+  # p$sthm_local_modelengine = "gaussianprocess2Dt"  # too slow for the data density  
+  # p$sthm_local_modelengine = "gam" # 2nd choice
   # p$sthm_eng ine = "bayesx" # too slow
   
   p = bio.bathymetry::bathymetry.parameters( p=p, DS="sthm" )
