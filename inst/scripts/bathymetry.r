@@ -11,21 +11,21 @@
   # also needs about 42 GB RAM, JC 2015
  if ( basedata.redo ) {
     # processing is  at "canada.east.highres" but temporarily drop to "canada.east to update raw data"
-    bathymetry.db ( p=spacetime_parameters( p=p, type="canada.east" ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-    bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
-    bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
+    bathymetry.db ( p=spatial_parameters( p=p, type="canada.east" ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+    bathymetry.db( p=p, DS="bathymetry.sthm.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+    bathymetry.db( p=p, DS="bathymetry.sthm.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
   }
   
   
   ### -----------------------------------------------------------------
 
-  p$spacetime_engine = "kernel.density"  # about 5 X faster than bayesx-mcmc method .. perferred for now
-  # p$spacetime_engine = "inla"  # about 5 X faster than bayesx-mcmc method .. perferred for now
-  # p$spacetime_engine = "gaussianprocess2Dt"  # too slow for the data density  
-  # p$spacetime_engine = "gam" # 2nd choice
-  # p$spacetime_eng ine = "bayesx" # too slow
+  p$sthm_engine = "kernel.density"  # about 5 X faster than bayesx-mcmc method .. perferred for now
+  # p$sthm_engine = "inla"  # about 5 X faster than bayesx-mcmc method .. perferred for now
+  # p$sthm_engine = "gaussianprocess2Dt"  # too slow for the data density  
+  # p$sthm_engine = "gam" # 2nd choice
+  # p$sthm_eng ine = "bayesx" # too slow
   
-  p = bio.bathymetry::bathymetry.parameters( p=p, DS="bio.bathymetry.spacetime" )
+  p = bio.bathymetry::bathymetry.parameters( p=p, DS="sthm" )
 
   landmask.redo= FALSE
   if (landmask.redo) {
@@ -39,20 +39,20 @@
   if (method=="bigmemory.ram") {
     # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016
     p$clusters = rep("localhost", 8)
-    data.call = 'bathymetry.db( p=p, DS="bathymetry.spacetime.data" )'
-    p = spacetime( DATA=data.call, p=p, storage.backend="bigmemory.ram", boundary=FALSE )  
+    data.call = 'bathymetry.db( p=p, DS="bathymetry.sthm.data" )'
+    p = sthm( DATA=data.call, p=p, storage.backend="bigmemory.ram", boundary=FALSE )  
   }
 
   if (method=="bigmemory.filebacked") {
     # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method jc: 2016
     p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 20 ) ) 
-    p = spacetime( DATA=data.call, p=p, storage.backend="bigmemory.filebacked", boundary=FALSE )  
+    p = sthm( DATA=data.call, p=p, storage.backend="bigmemory.filebacked", boundary=FALSE )  
   }
 
 
   # bring together stats and predictions and any other required computations: slope and curvature
-  bathymetry.db( p=p, DS="bathymetry.spacetime.finalize.redo" )
-  # B = bathymetry( p=p, DS="bathymetry.spacetime.finalize" )     # to see the assimilated data:
+  bathymetry.db( p=p, DS="bathymetry.sthm.finalize.redo" )
+  # B = bathymetry( p=p, DS="bathymetry.sthm.finalize" )     # to see the assimilated data:
 
   ### -----------------------------------------------------------------
   # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
@@ -66,7 +66,7 @@
   # "snowcrab" subsets do exist but are simple subsets of SSE
   # so only the lookuptable below is all that is important as far as bathymetry is concerned
   # both share the same initial domains + resolutions
-  bathymetry.db( p=spacetime_parameters( type="snowcrab" ), DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
+  bathymetry.db( p=spatial_parameters( type="snowcrab" ), DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
 
 
   ### -----------------------------------------------------------------
@@ -107,7 +107,7 @@
 
   # a few plots :
 
-  p = spacetime_parameters( type="canada.east.highres", p=p )
+  p = spatial_parameters( type="canada.east.highres", p=p )
   b = bathymetry.db( p=p, DS="complete" )
 
   vn = "z"

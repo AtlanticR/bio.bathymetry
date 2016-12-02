@@ -288,7 +288,7 @@
       # run on servers only unless your machine can handle it
       redo.bathymetry.rawdata = FALSE
       if ( redo.bathymetry.rawdata ) {
-        p = spacetime_parameters( type="canada.east", p=p )
+        p = spatial_parameters( type="canada.east", p=p )
         bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
      }
 
@@ -302,7 +302,7 @@
         area = c( "snowcrab", "SSE", "ecnasap", "canada.east" )
         for (sp in area) {
           p$spatial.domain = sp
-          p = spacetime_parameters( p=p )
+          p = spatial_parameters( p=p )
           p = gmt.parameters(p)  # interpolation parameters ... currently using GMT to interpolate bathymetry
           # override defaults in gmt.parameters as additional ones are used by other systems including lattice
           p$isobaths = c( 0, seq(50, 450, by=50), seq( 500, 1000, by=100 )  ) #override defaults
@@ -320,7 +320,7 @@
         area = c( "snowcrab", "SSE", "ecnasap", "canada.east" )
         for (sp in area) {
           p$spatial.domain = sp
-          p = spacetime_parameters( p=p )
+          p = spatial_parameters( p=p )
           p = gmt.parameters(p)  # interpolation parameters ... currently using GMT's isobaths whcih are specified in gmt.parameters
           # or if you want to override the isobaths plotted define them here (but make sure they were created in the previous step)
           # p$isobaths = c( seq(50, 450, by=100)  )
@@ -333,7 +333,7 @@
       complete.bathymetry.db = FALSE
       areas = c( "canada.east", "SSE" ) # only two are currently used
       for ( sp in areas ) {
-        p = spacetime_parameters( type=sp, p=p )
+        p = spatial_parameters( type=sp, p=p )
         p = gmt.parameters(p)
         bathymetry.db ( p, DS="prepare.intermediate.files.for.dZ.ddZ" )  # uses GMT's math functions ...
         bathymetry.db ( p, DS="Z.redo" )
@@ -347,13 +347,13 @@
       # "snowcrab" subsets do exist but are simple subsets of SSE
       # so only the lookuptable below is all that is important as far as bathymetry is concerned
       # both share the same initial domains + resolutions
-      p = spacetime_parameters( type="snowcrab", p=p )
+      p = spatial_parameters( type="snowcrab", p=p )
       bathymetry.db ( p, DS="baseline.redo" ) # additional filtering of areas and or depth to reduce file size
       bathymetry.db( DS="lookuptable.sse.snowcrab.redo" )
 
       # ------------------
       ## a few lattice-based maps: for SSE only right now
-      p = spacetime_parameters( type="SSE" )
+      p = spatial_parameters( type="SSE" )
       x = bathymetry.db ( p, DS="baseline" )
 
       snowcrab.area=F
@@ -772,7 +772,7 @@
 
       if ( p$spatial.domain == "snowcrab" ) {
         # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
-        Z = bathymetry.db( p=spacetime_parameters( type="SSE", p=p ), DS="baseline.gmt" )
+        Z = bathymetry.db( p=spatial_parameters( type="SSE", p=p ), DS="baseline.gmt" )
       } else {
         Z = bathymetry.db( p=p, DS="Z.planar" )
       }
@@ -796,10 +796,10 @@
       }
 
       for (domain in p$new.grids) {
-        pn = spacetime_parameters( type=domain )
+        pn = spatial_parameters( type=domain )
         if ( pn$spatial.domain == "snowcrab" ) {
           # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
-          Z = bathymetry.db( p=spacetime_parameters( type="SSE", p=pn ), DS="complete", return.format = "dataframe.filtered"  )
+          Z = bathymetry.db( p=spatial_parameters( type="SSE", p=pn ), DS="complete", return.format = "dataframe.filtered"  )
         } else {
           Z = bathymetry.db( p=pn , DS="complete", return.format = "dataframe.filtered"  )
         }
@@ -858,10 +858,10 @@
         if (file.exists(fn)) load(fn)
         return(id)
       }
-      zSSE = bathymetry.db ( p=spacetime_parameters( type="SSE" ), DS="baseline" )
+      zSSE = bathymetry.db ( p=spatial_parameters( type="SSE" ), DS="baseline" )
       zSSE$id.sse = 1:nrow(zSSE)
 
-      zsc  = bathymetry.db ( p=spacetime_parameters( type="snowcrab" ), DS="baseline" )
+      zsc  = bathymetry.db ( p=spatial_parameters( type="snowcrab" ), DS="baseline" )
       zsc$id.sc = 1:nrow(zsc)
 
       z = merge( zSSE, zsc, by =c("plon", "plat"), all.x=T, all.y=T, sort=F )
@@ -876,19 +876,19 @@
 
     # ----------------
 
-    if ( DS == "bathymetry.spacetime.data" ) {
+    if ( DS == "bathymetry.sthm.data" ) {
       return( list(
-        input =bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.data" ),
-        output=bathymetry.db( p=p, DS="bathymetry.spacetime.inputs.prediction") ) )
+        input =bathymetry.db( p=p, DS="bathymetry.sthm.inputs.data" ),
+        output=bathymetry.db( p=p, DS="bathymetry.sthm.inputs.prediction") ) )
     }
 
     # ----------------
 
-    if ( DS %in% c("bathymetry.spacetime.inputs.data", "bathymetry.spacetime.inputs.data.redo" )) {
-      #\\ DS="bathymetry.spacetime.input" is a low-level call that prepares the bathymetry data
+    if ( DS %in% c("bathymetry.sthm.inputs.data", "bathymetry.sthm.inputs.data.redo" )) {
+      #\\ DS="bathymetry.sthm.input" is a low-level call that prepares the bathymetry data
       #\\   for input into a table for further processing
-      fn = file.path( datadir, paste( "bathymetry", "spacetime", "input", p$spatial.domain,  "rdata", sep=".") )
-      if (DS =="bathymetry.spacetime.inputs.data" ) {
+      fn = file.path( datadir, paste( "bathymetry", "sthm", "input", p$spatial.domain,  "rdata", sep=".") )
+      if (DS =="bathymetry.sthm.inputs.data" ) {
         load( fn)
         return( B )
       }
@@ -905,10 +905,10 @@
 
     # --------------
 
-    if ( DS %in% c("bathymetry.spacetime.inputs.prediction", "bathymetry.spacetime.inputs.prediction.redo" )) {
-      #\\ DS="bathymetry.spacetime.input" is a low-level call that creates the input data table in a table
-      fn = file.path( datadir, paste( "bathymetry", "spacetime", "input", "prediction", p$spatial.domain,  "rdata", sep=".") )
-      if (DS =="bathymetry.spacetime.inputs.prediction" ) {
+    if ( DS %in% c("bathymetry.sthm.inputs.prediction", "bathymetry.sthm.inputs.prediction.redo" )) {
+      #\\ DS="bathymetry.sthm.input" is a low-level call that creates the input data table in a table
+      fn = file.path( datadir, paste( "bathymetry", "sthm", "input", "prediction", p$spatial.domain,  "rdata", sep=".") )
+      if (DS =="bathymetry.sthm.inputs.prediction" ) {
         load( fn)
         return( B )
       }
@@ -937,12 +937,12 @@
 
     #-------------------------
 
-    if ( DS %in% c("bathymetry.spacetime.finalize.redo", "bathymetry.spacetime.finalize" )) {
-      #// bathymetry( p, DS="bathymetry.spacetime.finalize(.redo)" return/create the
-      #//   spacetime interpolated method formatted and finalised for production use
+    if ( DS %in% c("bathymetry.sthm.finalize.redo", "bathymetry.sthm.finalize" )) {
+      #// bathymetry( p, DS="bathymetry.sthm.finalize(.redo)" return/create the
+      #//   sthm interpolated method formatted and finalised for production use
       fn = file.path(  project.datadirectory("bio.bathymetry"), "interpolated",
-        paste( "bathymetry", "spacetime", "finalized", p$spatial.domain, "rdata", sep=".") )
-      if (DS =="bathymetry.spacetime.finalize" ) {
+        paste( "bathymetry", "sthm", "finalized", p$spatial.domain, "rdata", sep=".") )
+      if (DS =="bathymetry.sthm.finalize" ) {
         B = NULL
         if ( file.exists ( fn) ) load( fn)
         return( B )
@@ -953,8 +953,8 @@
 
       B = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE)
       names( B ) = c("plon", "plat")
-      Bmean = spacetime_db( p, DS="spacetime.prediction", ret="mean" )
-      Bsd = spacetime_db( p, DS="spacetime.prediction", ret="sd" )
+      Bmean = sthm_db( p, DS="sthm.prediction", ret="mean" )
+      Bsd = sthm_db( p, DS="sthm.prediction", ret="sd" )
       B = cbind(B, Bmean, Bsd)
       rm (Bmean, Bsd); gc()
       names(B) = c( "plon", "plat", "z", "Z.predictionSD") # really Z.mean but for historical compatibility "z"
@@ -990,7 +990,7 @@
       B$ddZ = abs(c(ddZ))
 
       # merge into statistics
-      BS = spacetime_db( p, DS="stats.to.prediction.grid" )
+      BS = sthm_db( p, DS="stats.to.prediction.grid" )
       B = cbind( B, BS )
       rm (BS); gc()
 
@@ -1063,7 +1063,7 @@
       }
 
       p0 = p  # the originating parameters
-      Z0 = bathymetry.db( p=p0, DS="bathymetry.spacetime.finalize" )
+      Z0 = bathymetry.db( p=p0, DS="bathymetry.sthm.finalize" )
       coordinates( Z0 ) = ~ plon + plat
       crs(Z0) = crs( p0$interal.crs )
       above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
@@ -1074,11 +1074,11 @@
       grids = unique( c( p$spatial.domain, p$grids.new ))
 
       for (gr in grids ) {
-        p1 = spacetime_parameters( type=gr )
+        p1 = spatial_parameters( type=gr )
         for (vn in names(Z0)) {
           Z[[vn]] = projectRaster(
-            from =rasterize( Z0, spacetime_parameters_to_raster(p0), field=vn, fun=mean),
-            to   =spacetime_parameters_to_raster( p1) )
+            from =rasterize( Z0, spatial_parameters_to_raster(p0), field=vn, fun=mean),
+            to   =spatial_parameters_to_raster( p1) )
         }
         fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
           paste( "bathymetry", "spde_complete", p1$spatial.domain, "rdata", sep=".") )

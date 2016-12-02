@@ -6,30 +6,32 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
   if (DS=="bio.bathymetry"){
     p$project.root = project.datadirectory( p$project.name )
-    p$libs = bioLibrary( "bio.base", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons", "bio.spacetime" )
-    p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", "INLA", "gstat", "geoR",
-      "geosphere", "sp", "raster", "colorspace" ,  "splancs", "fields",  "ff", "ffbase" ) ) )
+    p$libs = bioLibrary( "bio.base", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons", "bio.sthm", "sthm" )
+    p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", 
+      "geosphere", "sp", "raster", "colorspace", "splancs" ) ) )
     # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
     # use "complete" to project/downscale/upscale onto other grids/resolutions
-    p = spacetime_parameters( type=resolution, p=p )
-    p = spacetime_parameters(p)  # load defaults
+    p = spatial_parameters( type=resolution, p=p )
+    p = spatial_parameters(p)  # load defaults
     # cluster definition
     p$clusters = rep( "localhost", nc )
     return(p)
   }
 
-  if (DS=="bio.bathymetry.spacetime") {
+  if (DS=="sthm") {
 
-    p$spacetime_rsquared_threshold = 0.3 # lower threshold
-    p$spacetime_distance_prediction = 5 # this is a half window km
-    p$spacetime_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+    p$libs = RLibrary( c( p$libs, "sthm" ) ) 
+
+    p$sthm_rsquared_threshold = 0.3 # lower threshold
+    p$sthm_distance_prediction = 5 # this is a half window km
+    p$sthm_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale to try in local block search
 
-    p$spacetime_family = bio.spacetime::log_gaussian_offset(1000)
+    p$sthm_family = bio.sthm::log_gaussian_offset(1000)
 
-    if (!exists("spacetime_engine", p)) p$spacetime_engine="inla"  # currently the perferred approach 
+    if (!exists("sthm_engine", p)) p$sthm_engine="inla"  # currently the perferred approach 
 
-    if ( p$spacetime_engine =="gaussianprocess2Dt" ) {
+    if ( p$sthm_engine =="gaussianprocess2Dt" ) {
       # too slow to use right now
       p$fields.cov.function = "stationary.cov"  #
       p$fields.cov.function = "stationary.taper.cov"  # Wendland tapering
@@ -38,33 +40,33 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
         if (!exists("fields.nu", p)) p$fields.nu=0.5  # note: this is the smoothness or shape parameter (fix at 0.5 if not calculated or given -- exponential)   
         p$fields.cov.args=list( Covariance=p$fields.Covariance, smoothness=p$fields.nu ) # this is exponential covariance 
       }
-    } else if (p$spacetime_engine == "kernel.density") {
+    } else if (p$sthm_engine == "kernel.density") {
       # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method, bigmemory-filebacked jc: 2016 
       # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method RAM based jc: 2016
-      p$spacetime_engine_modelformula = NA # no need for formulae for kernel.density
+      p$sthm_engine_modelformula = NA # no need for formulae for kernel.density
     
-    } else if (p$spacetime_engine == "gam") {
+    } else if (p$sthm_engine == "gam") {
       # GAM are overly smooth .. adding more knots might be good but speed is the cost .. k=50 to 100 seems to work nicely
       ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
-      p$spacetime_engine_modelformula = formula( 
+      p$sthm_engine_modelformula = formula( 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
-      p$spacetime_model_distance_weighted = TRUE  
+      p$sthm_model_distance_weighted = TRUE  
     
-    } else if ( p$spacetime_engine == "bayesx" ) {
+    } else if ( p$sthm_engine == "bayesx" ) {
     
       ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
-      p$spacetime_engine_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
+      p$sthm_engine_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
       p$bayesx.method="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
-      p$spacetime_model_distance_weighted = TRUE  
+      p$sthm_model_distance_weighted = TRUE  
     
-    } else if (p$spacetime_engine == "inla" ){
+    } else if (p$sthm_engine == "inla" ){
       
       # old method .. took a month to finish .. results look good but very slow
       ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
       p$inla_family = "gaussian"
       p$inla.alpha = 0.5 # bessel function curviness .. ie "nu"
-      p$spacetime_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in spacetime___inla
-      p$spacetime.posterior.extract = function(s, rnm) {
+      p$sthm_engine_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in sthm___inla
+      p$sthm.posterior.extract = function(s, rnm) {
         # rnm are the rownames that will contain info about the indices ..
         # optimally the grep search should only be done once but doing so would
         # make it difficult to implement in a simple structure/manner ...
@@ -76,12 +78,12 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     
     } else {
 
-      message( "The specified spacetime_engine is not tested/supported ... you are on your own ;) ..." )
+      message( "The specified sthm_engine is not tested/supported ... you are on your own ;) ..." )
 
     }
 
     # other options might work depending upon data density but GP are esp slow .. too slow for bathymetry
-    if (!exists("spacetime_engine.variogram", p)) p$spacetime_engine.variogram = "fast"
+    if (!exists("sthm_engine.variogram", p)) p$sthm_engine.variogram = "fast"
     
     p$variables = list( Y="z", LOCS=c("plon", "plat") ) 
     
@@ -89,12 +91,12 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
   
     # if not in one go, then the value must be reconstructed from the correct elements:
-    p$sbbox = spacetime_db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
+    p$sbbox = sthm_db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
     p$non_convex_hull_alpha = 50  # radius in distance units (km) to use for determining boundaries
     p$theta = p$pres # FFT kernel bandwidth (SD of kernel) required for method "harmonic.1/kernel.density"
 
-    p$spacetime.noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
+    p$sthm.noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$quantile_bounds = c(0.001, 0.999) # remove these extremes in interpolations
 
     return(p)
