@@ -6,7 +6,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
   if (DS=="bio.bathymetry"){
     p$project.root = project.datadirectory( p$project.name )
-    p$libs = bioLibrary( "bio.base", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons", "bio.sthm", "sthm" )
+    p$libs = bioLibrary( "bio.base", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons", "bio.conker", "conker" )
     p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", 
       "geosphere", "sp", "raster", "colorspace", "splancs" ) ) )
     # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
@@ -18,19 +18,19 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     return(p)
   }
 
-  if (DS=="sthm") {
+  if (DS=="conker") {
 
-    p$libs = RLibrary( c( p$libs, "sthm" ) ) # required for parallel
+    p$libs = RLibrary( c( p$libs, "conker" ) ) # required for parallel
 
-    p$sthm_rsquared_threshold = 0.3 # lower threshold
-    p$sthm_distance_prediction = 5 # this is a half window km
-    p$sthm_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
+    p$conker_rsquared_threshold = 0.3 # lower threshold
+    p$conker_distance_prediction = 5 # this is a half window km
+    p$conker_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale to try in local block search
 
-    if (!exists("sthm_local_modelengine", p)) p$sthm_local_modelengine="inla"  # currently the perferred approach 
+    if (!exists("conker_local_modelengine", p)) p$conker_local_modelengine="inla"  # currently the perferred approach 
 
-    if ( p$sthm_local_modelengine =="gaussianprocess2Dt" ) {
+    if ( p$conker_local_modelengine =="gaussianprocess2Dt" ) {
       # too slow to use right now
       p$fields.cov.function = "stationary.cov"  #
       p$fields.cov.function = "stationary.taper.cov"  # Wendland tapering
@@ -39,37 +39,37 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
         if (!exists("fields.nu", p)) p$fields.nu=0.5  # note: this is the smoothness or shape parameter (fix at 0.5 if not calculated or given -- exponential)   
         p$fields.cov.args=list( Covariance=p$fields.Covariance, smoothness=p$fields.nu ) # this is exponential covariance 
       }
-    } else if (p$sthm_local_modelengine == "kernel.density") {
+    } else if (p$conker_local_modelengine == "kernel.density") {
       # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method, bigmemory-filebacked jc: 2016 
       # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method RAM based jc: 2016
-      p$sthm_local_modelformula = NULL # no need for formulae for kernel.density
+      p$conker_local_modelformula = NULL # no need for formulae for kernel.density
     
-    } else if (p$sthm_local_modelengine == "gam") {
+    } else if (p$conker_local_modelengine == "gam") {
       # GAM are overly smooth .. adding more knots might be good but speed is the cost .. k=50 to 100 seems to work nicely
       ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
-      p$sthm_local_modelformula = formula( 
+      p$conker_local_modelformula = formula( 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
-      p$sthm_local_model_distanceweighted = TRUE  
-      p$sthm_local_family = bio.sthm::log_gaussian_offset(1000)
+      p$conker_local_model_distanceweighted = TRUE  
+      p$conker_local_family = bio.conker::log_gaussian_offset(1000)
     
-    } else if ( p$sthm_local_modelengine == "bayesx" ) {
+    } else if ( p$conker_local_modelengine == "bayesx" ) {
     
       ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
-      p$sthm_local_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
-      p$sthm_local_model_bayesxmethod="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
-      p$sthm_local_model_distanceweighted = TRUE  
-      p$sthm_local_family = bio.sthm::log_gaussian_offset(1000)
-      p$sthm_local_family_bayesx ="gaussian"
+      p$conker_local_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
+      p$conker_local_model_bayesxmethod="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
+      p$conker_local_model_distanceweighted = TRUE  
+      p$conker_local_family = bio.conker::log_gaussian_offset(1000)
+      p$conker_local_family_bayesx ="gaussian"
 
-    } else if (p$sthm_local_modelengine == "inla" ){
+    } else if (p$conker_local_modelengine == "inla" ){
       
       # old method .. took a month to finish .. results look good but very slow
       ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
-      p$sthm_local_family = bio.sthm::log_gaussian_offset(1000)
+      p$conker_local_family = bio.conker::log_gaussian_offset(1000)
       p$inla_family = "gaussian"
       p$inla.alpha = 0.5 # bessel function curviness .. ie "nu"
-      p$sthm_local_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in sthm___inla
-      p$sthm.posterior.extract = function(s, rnm) {
+      p$conker_local_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in conker___inla
+      p$conker.posterior.extract = function(s, rnm) {
         # rnm are the rownames that will contain info about the indices ..
         # optimally the grep search should only be done once but doing so would
         # make it difficult to implement in a simple structure/manner ...
@@ -81,12 +81,12 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     
     } else {
 
-      message( "The specified sthm_local_modelengine is not tested/supported ... you are on your own ;) ..." )
+      message( "The specified conker_local_modelengine is not tested/supported ... you are on your own ;) ..." )
 
     }
 
     # other options might work depending upon data density but GP are esp slow .. too slow for bathymetry
-    if (!exists("sthm_local_modelengine.variogram", p)) p$sthm_local_modelengine.variogram = "fast"
+    if (!exists("conker_variogram_method", p)) p$conker_variogram_method = "fast"
     
     p$variables = list( Y="z", LOCS=c("plon", "plat") ) 
     
@@ -94,12 +94,12 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
   
     # if not in one go, then the value must be reconstructed from the correct elements:
-    p$sthm_sbox = sthm_db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
+    p$conker_sbox = conker_db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
 
-    p$sthm_nonconvexhull_alpha = 50  # radius in distance units (km) to use for determining boundaries
-    p$sthm_theta = p$pres # FFT kernel bandwidth (SD of kernel) required for method "harmonic.1/kernel.density"
+    p$conker_nonconvexhull_alpha = 50  # radius in distance units (km) to use for determining boundaries
+    p$conker_theta = p$pres # FFT kernel bandwidth (SD of kernel) required for method "harmonic.1/kernel.density"
 
-    p$sthm_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
+    p$conker_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$quantile_bounds = c(0.001, 0.999) # remove these extremes in interpolations
 
     return(p)

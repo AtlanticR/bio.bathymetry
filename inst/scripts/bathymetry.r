@@ -12,20 +12,20 @@
  if ( basedata.redo ) {
     # processing is  at "canada.east.highres" but temporarily drop to "canada.east to update raw data"
     bathymetry.db ( p=spatial_parameters( p=p, type="canada.east" ), DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-    bathymetry.db( p=p, DS="bathymetry.sthm.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
-    bathymetry.db( p=p, DS="bathymetry.sthm.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
+    bathymetry.db( p=p, DS="bathymetry.conker.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+    bathymetry.db( p=p, DS="bathymetry.conker.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
   }
   
   
   ### -----------------------------------------------------------------
 
-  p$sthm_local_modelengine = "kernel.density"  # about 5 X faster than bayesx-mcmc method .. perferred for now
-  # p$sthm_local_modelengine = "inla"  # about 5 X faster than bayesx-mcmc method .. perferred for now
-  # p$sthm_local_modelengine = "gaussianprocess2Dt"  # too slow for the data density  
-  # p$sthm_local_modelengine = "gam" # 2nd choice
-  # p$sthm_eng ine = "bayesx" # too slow
+  p$conker_local_modelengine = "kernel.density"  # about 5 X faster than bayesx-mcmc method .. perferred for now
+  # p$conker_local_modelengine = "inla"  # about 5 X faster than bayesx-mcmc method .. perferred for now
+  # p$conker_local_modelengine = "gaussianprocess2Dt"  # too slow for the data density  
+  # p$conker_local_modelengine = "gam" # 2nd choice
+  # p$conker_eng ine = "bayesx" # too slow
   
-  p = bio.bathymetry::bathymetry.parameters( p=p, DS="sthm" )
+  p = bio.bathymetry::bathymetry.parameters( p=p, DS="conker" )
 
   landmask.redo= FALSE
   if (landmask.redo) {
@@ -39,20 +39,20 @@
   if (method=="bigmemory.ram") {
     # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016
     p$clusters = rep("localhost", 8)
-    data.call = 'bathymetry.db( p=p, DS="bathymetry.sthm.data" )'
-    p = sthm( DATA=data.call, p=p, storage.backend="bigmemory.ram", boundary=FALSE )  
+    data.call = 'bathymetry.db( p=p, DS="bathymetry.conker.data" )'
+    p = conker( DATA=data.call, p=p, storage.backend="bigmemory.ram", boundary=FALSE )  
   }
 
   if (method=="bigmemory.filebacked") {
     # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method jc: 2016
     p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 20 ) ) 
-    p = sthm( DATA=data.call, p=p, storage.backend="bigmemory.filebacked", boundary=FALSE )  
+    p = conker( DATA=data.call, p=p, storage.backend="bigmemory.filebacked", boundary=FALSE )  
   }
 
 
   # bring together stats and predictions and any other required computations: slope and curvature
-  bathymetry.db( p=p, DS="bathymetry.sthm.finalize.redo" )
-  # B = bathymetry( p=p, DS="bathymetry.sthm.finalize" )     # to see the assimilated data:
+  bathymetry.db( p=p, DS="bathymetry.conker.finalize.redo" )
+  # B = bathymetry( p=p, DS="bathymetry.conker.finalize" )     # to see the assimilated data:
 
   ### -----------------------------------------------------------------
   # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run

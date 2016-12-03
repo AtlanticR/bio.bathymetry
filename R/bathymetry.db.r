@@ -876,19 +876,19 @@
 
     # ----------------
 
-    if ( DS == "bathymetry.sthm.data" ) {
+    if ( DS == "bathymetry.conker.data" ) {
       return( list(
-        input =bathymetry.db( p=p, DS="bathymetry.sthm.inputs.data" ),
-        output=bathymetry.db( p=p, DS="bathymetry.sthm.inputs.prediction") ) )
+        input =bathymetry.db( p=p, DS="bathymetry.conker.inputs.data" ),
+        output=bathymetry.db( p=p, DS="bathymetry.conker.inputs.prediction") ) )
     }
 
     # ----------------
 
-    if ( DS %in% c("bathymetry.sthm.inputs.data", "bathymetry.sthm.inputs.data.redo" )) {
-      #\\ DS="bathymetry.sthm.input" is a low-level call that prepares the bathymetry data
+    if ( DS %in% c("bathymetry.conker.inputs.data", "bathymetry.conker.inputs.data.redo" )) {
+      #\\ DS="bathymetry.conker.input" is a low-level call that prepares the bathymetry data
       #\\   for input into a table for further processing
-      fn = file.path( datadir, paste( "bathymetry", "sthm", "input", p$spatial.domain,  "rdata", sep=".") )
-      if (DS =="bathymetry.sthm.inputs.data" ) {
+      fn = file.path( datadir, paste( "bathymetry", "conker", "input", p$spatial.domain,  "rdata", sep=".") )
+      if (DS =="bathymetry.conker.inputs.data" ) {
         load( fn)
         return( B )
       }
@@ -905,10 +905,10 @@
 
     # --------------
 
-    if ( DS %in% c("bathymetry.sthm.inputs.prediction", "bathymetry.sthm.inputs.prediction.redo" )) {
-      #\\ DS="bathymetry.sthm.input" is a low-level call that creates the input data table in a table
-      fn = file.path( datadir, paste( "bathymetry", "sthm", "input", "prediction", p$spatial.domain,  "rdata", sep=".") )
-      if (DS =="bathymetry.sthm.inputs.prediction" ) {
+    if ( DS %in% c("bathymetry.conker.inputs.prediction", "bathymetry.conker.inputs.prediction.redo" )) {
+      #\\ DS="bathymetry.conker.input" is a low-level call that creates the input data table in a table
+      fn = file.path( datadir, paste( "bathymetry", "conker", "input", "prediction", p$spatial.domain,  "rdata", sep=".") )
+      if (DS =="bathymetry.conker.inputs.prediction" ) {
         load( fn)
         return( B )
       }
@@ -937,12 +937,12 @@
 
     #-------------------------
 
-    if ( DS %in% c("bathymetry.sthm.finalize.redo", "bathymetry.sthm.finalize" )) {
-      #// bathymetry( p, DS="bathymetry.sthm.finalize(.redo)" return/create the
-      #//   sthm interpolated method formatted and finalised for production use
+    if ( DS %in% c("bathymetry.conker.finalize.redo", "bathymetry.conker.finalize" )) {
+      #// bathymetry( p, DS="bathymetry.conker.finalize(.redo)" return/create the
+      #//   conker interpolated method formatted and finalised for production use
       fn = file.path(  project.datadirectory("bio.bathymetry"), "interpolated",
-        paste( "bathymetry", "sthm", "finalized", p$spatial.domain, "rdata", sep=".") )
-      if (DS =="bathymetry.sthm.finalize" ) {
+        paste( "bathymetry", "conker", "finalized", p$spatial.domain, "rdata", sep=".") )
+      if (DS =="bathymetry.conker.finalize" ) {
         B = NULL
         if ( file.exists ( fn) ) load( fn)
         return( B )
@@ -953,8 +953,8 @@
 
       B = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE)
       names( B ) = c("plon", "plat")
-      Bmean = sthm_db( p, DS="sthm.prediction", ret="mean" )
-      Bsd = sthm_db( p, DS="sthm.prediction", ret="sd" )
+      Bmean = conker_db( p, DS="conker.prediction", ret="mean" )
+      Bsd = conker_db( p, DS="conker.prediction", ret="sd" )
       B = cbind(B, Bmean, Bsd)
       rm (Bmean, Bsd); gc()
       names(B) = c( "plon", "plat", "z", "Z.predictionSD") # really Z.mean but for historical compatibility "z"
@@ -990,7 +990,7 @@
       B$ddZ = abs(c(ddZ))
 
       # merge into statistics
-      BS = sthm_db( p, DS="stats.to.prediction.grid" )
+      BS = conker_db( p, DS="stats.to.prediction.grid" )
       B = cbind( B, BS )
       rm (BS); gc()
 
@@ -1063,7 +1063,7 @@
       }
 
       p0 = p  # the originating parameters
-      Z0 = bathymetry.db( p=p0, DS="bathymetry.sthm.finalize" )
+      Z0 = bathymetry.db( p=p0, DS="bathymetry.conker.finalize" )
       coordinates( Z0 ) = ~ plon + plat
       crs(Z0) = crs( p0$interal.crs )
       above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
