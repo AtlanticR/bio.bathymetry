@@ -1,31 +1,32 @@
 
-bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada.east.highres", nc=1 ) {
+bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada.east.highres" ) {
 
   if ( is.null(p) ) p=list()
   if ( !exists("project.name", p) ) p$project.name=DS
 
   if (DS=="bio.bathymetry"){
     p$project.root = project.datadirectory( p$project.name )
-    p$libs = bioLibrary( "bio.base", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons", "bio.conker", "conker" )
+    p$libs = bioLibrary( "bio.base", "bio.utilities", "bio.bathymetry", "bio.coastline", "bio.polygons", "bio.spacetime", "conker" )
     p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", 
       "geosphere", "sp", "raster", "colorspace", "splancs" ) ) )
-    # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
-    # use "complete" to project/downscale/upscale onto other grids/resolutions
-    p = spatial_parameters( type=resolution, p=p )
-    p = spatial_parameters(p)  # load defaults
-    # cluster definition
-    p$clusters = rep( "localhost", nc )
+ 
+    p$default.spatial.resolution = "canada.east.highres"
+    p = spatial_parameters(p=p, type=p$default.spatial.resolution )  # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
+ 
     return(p)
   }
+
 
   if (DS=="conker") {
 
     p$libs = RLibrary( c( p$libs, "conker" ) ) # required for parallel
+    p$storage.backend="bigmemory.ram"
 
-    p$conker_rsquared_threshold = 0.3 # lower threshold
-    p$conker_distance_prediction = 5 # this is a half window km
+    p$conker_rsquared_threshold = 0.1 # lower threshold
+    p$conker_distance_prediction = 7.5 # this is a half window km
     p$conker_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
-    
+    p$conker_distance_scale = 25 # km ... approx guess of 95% AC range 
+
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale to try in local block search
 
     if (!exists("conker_local_modelengine", p)) p$conker_local_modelengine="inla"  # currently the perferred approach 
@@ -50,7 +51,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
       p$conker_local_modelformula = formula( 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
       p$conker_local_model_distanceweighted = TRUE  
-      p$conker_local_family = bio.conker::log_gaussian_offset(1000)
+      p$conker_local_family = conker::log_gaussian_offset(1000)
     
     } else if ( p$conker_local_modelengine == "bayesx" ) {
     
@@ -58,14 +59,14 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
       p$conker_local_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
       p$conker_local_model_bayesxmethod="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
       p$conker_local_model_distanceweighted = TRUE  
-      p$conker_local_family = bio.conker::log_gaussian_offset(1000)
+      p$conker_local_family = conker::log_gaussian_offset(1000)
       p$conker_local_family_bayesx ="gaussian"
 
     } else if (p$conker_local_modelengine == "inla" ){
       
       # old method .. took a month to finish .. results look good but very slow
       ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
-      p$conker_local_family = bio.conker::log_gaussian_offset(1000)
+      p$conker_local_family = conker::log_gaussian_offset(1000)
       p$inla_family = "gaussian"
       p$inla.alpha = 0.5 # bessel function curviness .. ie "nu"
       p$conker_local_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in conker___inla
@@ -91,16 +92,16 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$variables = list( Y="z", LOCS=c("plon", "plat") ) 
     
     p$n.min = 30 # n.min/n.max changes with resolution
-    p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
+    p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
   
-    # if not in one go, then the value must be reconstructed from the correct elements:
-    p$conker_sbox = conker_db( p=p, DS="statistics.box" ) # bounding box and resoltuoin of output statistics defaults to 1 km X 1 km
-
-    p$conker_nonconvexhull_alpha = 50  # radius in distance units (km) to use for determining boundaries
-    p$conker_theta = p$pres # FFT kernel bandwidth (SD of kernel) required for method "harmonic.1/kernel.density"
+    p$conker_nonconvexhull_alpha = 20  # radius in distance units (km) to use for determining boundaries
+    p$conker_theta = p$pres*1 # FFT kernel bandwidth (SD of kernel) required for method "harmonic.1/kernel.density"
 
     p$conker_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
-    p$quantile_bounds = c(0.001, 0.999) # remove these extremes in interpolations
+    p$conker_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
+
+    p$boundary = NULL # NULL turns it off 
+    p$depth.filter = NULL # depth is given as log(depth) so, choose andy stats locations with elevation > 1 m as being on land
 
     return(p)
   }

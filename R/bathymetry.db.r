@@ -6,6 +6,16 @@
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
+    fn.bathymetry.xyz = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz" )
+    fn.bathymetry.bin = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary .. obsolete method 
+  
+    if (exists("spatial.domain", p)) {
+      # mechanism to override defaults, eg for other regions
+      if ( p$spatial.domain %in% c("SSE", "snowcrab", "SSE.mpa", "canada.east", "canada.east.highres" ) ) {
+        fn.bathymetry.xyz = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
+        fn.bathymetry.bin = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary .. obsolete method 
+      }
+    }
 
     if ( DS=="gebco") {
       #library(RNetCDF)
@@ -20,7 +30,7 @@
       }
 
       fn_local = file.path( datadir, "gebco.xyz.xz") # xz compressed file
-      nc <- open.nc(bathy_fname)
+      nc = open.nc(bathy_fname)
       read.nc(nc)
       array(tmp$z, dim=tmp$dim)
       gebco = read.table( xzfile( fn_local ) )
@@ -253,9 +263,10 @@
 
       save( bathy, file=fn, compress=T )
 
-      fn.xz = xzfile( paste( p$bathymetry.xyz, ".xz", sep="" ) )
+      
+      fn.xz = xzfile( paste( fn.bathymetry.xyz, ".xz", sep="" ) )
       write.table( bathy, file=fn.xz, col.names=F, quote=F, row.names=F)
-      system( paste( "xz",  p$bathymetry.xyz ))  # compress for space
+      system( paste( "xz",  fn.bathymetry.xyz ))  # compress for space
 
       file.remove( fn0)
       file.remove( fn1)
@@ -549,16 +560,17 @@
 			z.dds = file.path(tmpdir, make.random.string( ".gmt.z.dds"))
 			z.d2ds2 = file.path(tmpdir, make.random.string( ".gmt.z.d2ds2"))
 
-      if ( !file.exists( p$bathymetry.bin )) {
+
+      if ( !file.exists( fn.bathymetry.bin )) {
         # a GMT binary file of bathymetry .. currently, only the "canada.east" domain
         # is all that is required/available
-        fnxz = paste(p$bathymetry.xyz, ".xz", sep="")
+        fnxz = paste(fn.bathymetry.xyz, ".xz", sep="")
         cmd( "xz --decompress", fnxz )
-        cmd( "gmtconvert -bo", p$bathymetry.xyz, ">", p$bathymetry.bin )
-        cmd( "xz --compress", p$bathymetry.xyz )
+        cmd( "gmtconvert -bo", fn.bathymetry.xyz, ">", fn.bathymetry.bin )
+        cmd( "xz --compress", fn.bathymetry.xyz )
       }
 
-			cmd( "blockmean", p$bathymetry.bin, "-bi3 -bo", p$region, b.res, ">", blocked )
+			cmd( "blockmean", fn.bathymetry.bin, "-bi3 -bo", p$region, b.res, ">", blocked )
 			cmd( "surface", blocked, "-bi3", p$region, b.res, bathy.tension, paste("-G", grids, sep="") )
 			cmd( "grdmath -M", grids, "DDX ABS", grids, "DDY ABS ADD 0.5 MUL =", z.dds )
 			cmd( "grdmath -M -N", grids, "CURV =", z.d2ds2 )
@@ -951,18 +963,17 @@
       nr = p$nplons
       nc = p$nplats
 
-      B = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE)
-      names( B ) = c("plon", "plat")
-      Bmean = conker_db( p, DS="conker.prediction", ret="mean" )
-      Bsd = conker_db( p, DS="conker.prediction", ret="sd" )
+      B = bathymetry.db( p=p, DS="bathymetry.conker.inputs.prediction") # add to the input dataS
+      Bmean = conker_db( p=p, DS="conker.prediction", ret="mean" )
+      Bsd = conker_db( p=p, DS="conker.prediction", ret="sd" )
       B = cbind(B, Bmean, Bsd)
       rm (Bmean, Bsd); gc()
-      names(B) = c( "plon", "plat", "z", "Z.predictionSD") # really Z.mean but for historical compatibility "z"
+      names(B) = c( "plon", "plat", "z", "z.sd") # really Z.mean but for historical compatibility "z"
 
       # remove land
       oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
       B$z[oc] = NA
-      B$Z.predictionSD[oc] = NA
+      B$z.sd[oc] = NA
 
       Bmn = matrix( data=B$z, nrow=nr, ncol=nc )  # means
 
@@ -990,11 +1001,11 @@
       B$ddZ = abs(c(ddZ))
 
       # merge into statistics
-      BS = conker_db( p, DS="stats.to.prediction.grid" )
+      BS = conker_db( p=p, DS="stats.to.prediction.grid" )
       B = cbind( B, BS )
       rm (BS); gc()
 
-      names(B) = c( names(B), p$statvars )
+      # names(B) = c( names(B), p$statvars )
 
       save( B, file=fn, compress=TRUE)
       return(fn)
@@ -1028,7 +1039,7 @@
         } } }
 
         fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
-          paste( "bathymetry", "spde_complete", domain, "rdata", sep=".") )
+          paste( "bathymetry", "complete", domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
 
         if ( return.format == "brick" ) {
@@ -1076,12 +1087,12 @@
       for (gr in grids ) {
         p1 = spatial_parameters( type=gr )
         for (vn in names(Z0)) {
-          Z[[vn]] = projectRaster(
-            from =rasterize( Z0, spatial_parameters_to_raster(p0), field=vn, fun=mean),
-            to   =spatial_parameters_to_raster( p1) )
+          Z[[vn]] = raster::projectRaster(
+            from = raster::rasterize( Z0, bio.spacetime::spatial_parameters_to_raster(p0), field=vn, fun=mean),
+            to   = bio.spacetime::spatial_parameters_to_raster( p1) )
         }
         fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
-          paste( "bathymetry", "spde_complete", p1$spatial.domain, "rdata", sep=".") )
+          paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
         save (Z, file=fn, compress=TRUE)
         print(fn)
       }
