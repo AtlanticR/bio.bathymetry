@@ -95,7 +95,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
   
     p$conker_nonconvexhull_alpha = 20  # radius in distance units (km) to use for determining boundaries
-    p$conker_theta = p$pres*1 # FFT kernel bandwidth (SD of kernel) required for method "harmonic.1/kernel.density"
+    p$conker_range = p$pres/4 # FFT based method when  operating gloablly
+    p$conker_nu = 0.5 # this is exponential covar
 
     p$conker_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$conker_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
