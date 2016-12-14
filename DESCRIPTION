@@ -11,7 +11,7 @@ Imports:
   bio.polygons,
   bio.utilities
 Suggests: knitr, rmarkdown,
-  conker,
+  lstfilter,
   bio.spacetime, 
   bio.coastline
 VignetteBuilder: knitr

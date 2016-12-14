@@ -888,19 +888,19 @@
 
     # ----------------
 
-    if ( DS == "bathymetry.conker.data" ) {
+    if ( DS == "bathymetry.lstfilter.data" ) {
       return( list(
-        input =bathymetry.db( p=p, DS="bathymetry.conker.inputs.data" ),
-        output=bathymetry.db( p=p, DS="bathymetry.conker.inputs.prediction") ) )
+        input =bathymetry.db( p=p, DS="bathymetry.lstfilter.inputs.data" ),
+        output=bathymetry.db( p=p, DS="bathymetry.lstfilter.inputs.prediction") ) )
     }
 
     # ----------------
 
-    if ( DS %in% c("bathymetry.conker.inputs.data", "bathymetry.conker.inputs.data.redo" )) {
-      #\\ DS="bathymetry.conker.input" is a low-level call that prepares the bathymetry data
+    if ( DS %in% c("bathymetry.lstfilter.inputs.data", "bathymetry.lstfilter.inputs.data.redo" )) {
+      #\\ DS="bathymetry.lstfilter.input" is a low-level call that prepares the bathymetry data
       #\\   for input into a table for further processing
-      fn = file.path( datadir, paste( "bathymetry", "conker", "input", p$spatial.domain,  "rdata", sep=".") )
-      if (DS =="bathymetry.conker.inputs.data" ) {
+      fn = file.path( datadir, paste( "bathymetry", "lstfilter", "input", p$spatial.domain,  "rdata", sep=".") )
+      if (DS =="bathymetry.lstfilter.inputs.data" ) {
         load( fn)
         return( B )
       }
@@ -917,10 +917,10 @@
 
     # --------------
 
-    if ( DS %in% c("bathymetry.conker.inputs.prediction", "bathymetry.conker.inputs.prediction.redo" )) {
-      #\\ DS="bathymetry.conker.input" is a low-level call that creates the input data table in a table
-      fn = file.path( datadir, paste( "bathymetry", "conker", "input", "prediction", p$spatial.domain,  "rdata", sep=".") )
-      if (DS =="bathymetry.conker.inputs.prediction" ) {
+    if ( DS %in% c("bathymetry.lstfilter.inputs.prediction", "bathymetry.lstfilter.inputs.prediction.redo" )) {
+      #\\ DS="bathymetry.lstfilter.input" is a low-level call that creates the input data table in a table
+      fn = file.path( datadir, paste( "bathymetry", "lstfilter", "input", "prediction", p$spatial.domain,  "rdata", sep=".") )
+      if (DS =="bathymetry.lstfilter.inputs.prediction" ) {
         load( fn)
         return( B )
       }
@@ -949,12 +949,12 @@
 
     #-------------------------
 
-    if ( DS %in% c("bathymetry.conker.finalize.redo", "bathymetry.conker.finalize" )) {
-      #// bathymetry( p, DS="bathymetry.conker.finalize(.redo)" return/create the
-      #//   conker interpolated method formatted and finalised for production use
+    if ( DS %in% c("bathymetry.lstfilter.finalize.redo", "bathymetry.lstfilter.finalize" )) {
+      #// bathymetry( p, DS="bathymetry.lstfilter.finalize(.redo)" return/create the
+      #//   lstfilter interpolated method formatted and finalised for production use
       fn = file.path(  project.datadirectory("bio.bathymetry"), "interpolated",
-        paste( "bathymetry", "conker", "finalized", p$spatial.domain, "rdata", sep=".") )
-      if (DS =="bathymetry.conker.finalize" ) {
+        paste( "bathymetry", "lstfilter", "finalized", p$spatial.domain, "rdata", sep=".") )
+      if (DS =="bathymetry.lstfilter.finalize" ) {
         B = NULL
         if ( file.exists ( fn) ) load( fn)
         return( B )
@@ -963,9 +963,9 @@
       nr = p$nplons
       nc = p$nplats
 
-      B = bathymetry.db( p=p, DS="bathymetry.conker.inputs.prediction") # add to the input dataS
-      Bmean = conker_db( p=p, DS="conker.prediction", ret="mean" )
-      Bsd = conker_db( p=p, DS="conker.prediction", ret="sd" )
+      B = bathymetry.db( p=p, DS="bathymetry.lstfilter.inputs.prediction") # add to the input dataS
+      Bmean = lstfilter_db( p=p, DS="lstfilter.prediction", ret="mean" )
+      Bsd = lstfilter_db( p=p, DS="lstfilter.prediction", ret="sd" )
       B = cbind(B, Bmean, Bsd)
       rm (Bmean, Bsd); gc()
       names(B) = c( "plon", "plat", "z", "z.sd") # really Z.mean but for historical compatibility "z"
@@ -1001,7 +1001,7 @@
       B$ddZ = abs(c(ddZ))
 
       # merge into statistics
-      BS = conker_db( p=p, DS="stats.to.prediction.grid" )
+      BS = lstfilter_db( p=p, DS="stats.to.prediction.grid" )
       B = cbind( B, BS )
       rm (BS); gc()
 
@@ -1074,7 +1074,7 @@
       }
 
       p0 = p  # the originating parameters
-      Z0 = bathymetry.db( p=p0, DS="bathymetry.conker.finalize" )
+      Z0 = bathymetry.db( p=p0, DS="bathymetry.lstfilter.finalize" )
       coordinates( Z0 ) = ~ plon + plat
       crs(Z0) = crs( p0$interal.crs )
       above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
