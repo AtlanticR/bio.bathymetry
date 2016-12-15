@@ -19,35 +19,24 @@ if ( basedata.redo ) {
 
 p = bio.bathymetry::bathymetry.parameters() # reset to defaults
 
-p$lstfilter_local_modelengine = "kernel.density"  # about 5 X faster than bayesx-mcmc method .. perferred for now
-# p$lstfilter_local_modelengine = "inla"  # about 5 X faster than bayesx-mcmc method .. perferred for now
-# p$lstfilter_local_modelengine = "gaussianprocess2Dt"  # too slow for the data density  
-# p$lstfilter_local_modelengine = "gam" # 2nd choice
-# p$lstfilter_eng ine = "bayesx" # too slow
+p$lstfilter_local_modelengine = "kernel.density"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
+p$storage.backend="bigmemory.ram"  # filebacked metods are still too slow ..
 
 p = bio.bathymetry::bathymetry.parameters( p=p, DS="lstfilter" )
 
+
 landmask.redo= FALSE
 if (landmask.redo) {
-  # re-run only if default resolution is altered ... very slow 1 hr?
+  # re-run only if default resolution is altered ... ~ 1 hr?
   bathymetry.db( DS="landmasks.create", p=p ) 
 }
 
 # 2.2GB/process and 2.2 GB in parent 
 # boundary def takes too long .. too much data to process -- skip
-method = "bigmemory.ram"
-if (method=="bigmemory.ram") {
-  # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016
-  p$clusters = rep("localhost", 8)
-  data.call = 'bathymetry.db( p=p, DS="bathymetry.lstfilter.data" )'
-  p = lstfilter( DATA=data.call, p=p, storage.backend="bigmemory.ram", boundary=FALSE )  
-}
-
-if (method=="bigmemory.filebacked") {
-  # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method jc: 2016
-  p$clusters = c( rep( "nyx", 24 ), rep ("tartarus", 24), rep("kaos", 20 ) ) 
-  p = lstfilter( DATA=data.call, p=p, storage.backend="bigmemory.filebacked", boundary=FALSE )  
-}
+# ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016
+p$clusters = rep("localhost", 8)
+DATA = 'bathymetry.db( p=p, DS="bathymetry.lstfilter.data" )'
+p = lstfilter( DATA=DATA, p=p )  
 
 
 # bring together stats and predictions and any other required computations: slope and curvature

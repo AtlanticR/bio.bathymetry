@@ -21,8 +21,17 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
 
     p$libs = RLibrary( c( p$libs, "lstfilter" ) ) # required for parallel
     p$storage.backend="bigmemory.ram"
+    p$boundary = FALSE
+    p$depth.filter = FALSE # depth is given as log(depth) so, choose andy stats locations with elevation > 1 m as being on land
+  
+    p$lstfilter_nonconvexhull_alpha = 20  # radius in distance units (km) to use for determining boundaries
+    p$lstfilter_phi = p$pres/5 # FFT based method when operating gloablly
+    p$lstfilter_nu = 0.5 # this is exponential covar
+    p$lstfilter_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
+    p$lstfilter_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
 
-    p$lstfilter_rsquared_threshold = 0.1 # lower threshold
+    
+    p$lstfilter_rsquared_threshold = 0.05 # lower threshold
     p$lstfilter_distance_prediction = 7.5 # this is a half window km
     p$lstfilter_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$lstfilter_distance_scale = 25 # km ... approx guess of 95% AC range 
@@ -94,15 +103,6 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$n.min = 30 # n.min/n.max changes with resolution
     p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
   
-    p$lstfilter_nonconvexhull_alpha = 20  # radius in distance units (km) to use for determining boundaries
-    p$lstfilter_phi = p$pres/5 # FFT based method when  operating gloablly
-    p$lstfilter_nu = 0.5 # this is exponential covar
-
-    p$lstfilter_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
-    p$lstfilter_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
-
-    p$boundary = NULL # NULL turns it off 
-    p$depth.filter = NULL # depth is given as log(depth) so, choose andy stats locations with elevation > 1 m as being on land
 
     return(p)
   }

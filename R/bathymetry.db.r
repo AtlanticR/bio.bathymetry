@@ -262,7 +262,6 @@
       rm( bathy1, bathy0 ) ; gc()
 
       save( bathy, file=fn, compress=T )
-
       
       fn.xz = xzfile( paste( fn.bathymetry.xyz, ".xz", sep="" ) )
       write.table( bathy, file=fn.xz, col.names=F, quote=F, row.names=F)
