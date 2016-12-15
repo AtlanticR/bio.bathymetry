@@ -21,9 +21,7 @@ p = bio.bathymetry::bathymetry.parameters() # reset to defaults
 
 p$lstfilter_local_modelengine = "kernel.density"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
 p$storage.backend="bigmemory.ram"  # filebacked metods are still too slow ..
-
 p = bio.bathymetry::bathymetry.parameters( p=p, DS="lstfilter" )
-
 
 landmask.redo= FALSE
 if (landmask.redo) {

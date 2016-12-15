@@ -52,7 +52,11 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     } else if (p$lstfilter_local_modelengine == "kernel.density") {
       # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method, bigmemory-filebacked jc: 2016 
       # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method RAM based jc: 2016
-      p$lstfilter_local_modelformula = NULL # no need for formulae for kernel.density
+      # ! xx hr with 8 cpu on hyperion; 1 GB per process and a total of 6 GB usage 
+      
+    } else if (p$lstfilter_local_modelengine == "twostep") {
+
+      stop( "Makes no sense to use two step as there is no time series")
     
     } else if (p$lstfilter_local_modelengine == "gam") {
       # GAM are overly smooth .. adding more knots might be good but speed is the cost .. k=50 to 100 seems to work nicely
