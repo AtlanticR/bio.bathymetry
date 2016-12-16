@@ -905,7 +905,7 @@
       }
       print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )
-      B = B[ which(B$z > -100),]
+      B = B[ which(B$z > -100),]  # take part of the land to define coastline
       B = lonlat2planar( B, proj.type=p$internal.projection )
       B$plon = grid.internal( B$plon, p$plons )
       B$plat = grid.internal( B$plat, p$plats )

@@ -61,6 +61,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     } else if (p$hivemod_local_modelengine == "kernel.density") {
       # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method, bigmemory-filebacked jc: 2016 
       # ~ 14 hrs with 8, 3.2 Ghz cpus on thoth; 1 GB per process and a total of 6 GB usage;  method RAM based jc: 2016
+      # ~ 5.5 hr on hyperion 
       # definitely a cleaner (not overly smoothed) image than a GAM
       # NOTE that  p$hivemod_phi and  p$hivemod_nu are very critical choices
             
