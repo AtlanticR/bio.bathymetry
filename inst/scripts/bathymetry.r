@@ -11,8 +11,6 @@ if ( basedata.redo ) {
   # p$clusters = c( rep( "nyx", nc ), rep ("tartarus", nc), rep("kaos", nc ) )
     p=spatial_parameters( p=p, type="canada.east" )
     bathymetry.db ( p=p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
-    bathymetry.db( p=p, DS="bathymetry.hivemod.inputs.data.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
-    bathymetry.db( p=p, DS="bathymetry.hivemod.inputs.prediction.redo" ) # i.e, pred locations (with covariates if any )
 }
   
 ### -----------------------------------------------------------------
@@ -21,12 +19,15 @@ if ( basedata.redo ) {
 # boundary def takes too long .. too much data to process -- skip
 # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016
 # ~ 6 hr on hyperion
+
 p = bio.bathymetry::bathymetry.parameters() # reset to defaults
+bathymetry.db( p=p, DS="bathymetry.hivemod.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+
 p$hivemod_local_modelengine = "kernel.density"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
 p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
 p$clusters = rep("localhost", detectCores() )
-DATA = 'bathymetry.db( p=p, DS="bathymetry.hivemod.data" )'
-p = hivemod( p=p, DATA=DATA )  
+p = hivemod( p=p, DATA='bathymetry.db( p=p, DS="bathymetry.hivemod" )' )  
+
 # bring together stats and predictions and any other required computations: slope and curvature
 bathymetry.db( p=p, DS="bathymetry.hivemod.finalize.redo" )
 # B = bathymetry( p=p, DS="bathymetry.hivemod.finalize" )     # to see the assimilated data:

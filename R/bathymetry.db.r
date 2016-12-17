@@ -887,48 +887,33 @@
 
     # ----------------
 
-    if ( DS == "bathymetry.hivemod.data" ) {
-      return( list(
-        input =bathymetry.db( p=p, DS="bathymetry.hivemod.inputs.data" ),
-        output=bathymetry.db( p=p, DS="bathymetry.hivemod.inputs.prediction") ) )
-    }
+    if ( DS %in% c("bathymetry.hivemod", "bathymetry.hivemod.redo" )) {
 
-    # ----------------
-
-    if ( DS %in% c("bathymetry.hivemod.inputs.data", "bathymetry.hivemod.inputs.data.redo" )) {
-      #\\ DS="bathymetry.hivemod.input" is a low-level call that prepares the bathymetry data
-      #\\   for input into a table for further processing
-      fn = file.path( datadir, paste( "bathymetry", "hivemod", "input", p$spatial.domain,  "rdata", sep=".") )
-      if (DS =="bathymetry.hivemod.inputs.data" ) {
+      fn = file.path( datadir, paste( "bathymetry", "hivemod", "rdata", sep=".") )
+      if (DS =="bathymetry.hivemod" ) {
         load( fn)
-        return( B )
+        return( hm )
       }
+      
       print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
-      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )
+      
+      B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
       B = B[ which(B$z > -100),]  # take part of the land to define coastline
       B = lonlat2planar( B, proj.type=p$internal.projection )
+
+      # if using kernel density/FFT.. might as well take the gird here as it requires  gridded data 
       B$plon = grid.internal( B$plon, p$plons )
       B$plat = grid.internal( B$plat, p$plats )
       B = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
-      save( B, file=fn, compress=TRUE)
-      return(fn)
+
+#       B = B[, c("plon", "plat", "z")]
+
+      BP = list( LOCS = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE) )
+      names( BP$LOCS ) = c("plon", "plat")
+
+      hm = list( input=B, output=BP )
+      save( hm, file=fn, compress=TRUE)
     }
-
-    # --------------
-
-    if ( DS %in% c("bathymetry.hivemod.inputs.prediction", "bathymetry.hivemod.inputs.prediction.redo" )) {
-      #\\ DS="bathymetry.hivemod.input" is a low-level call that creates the input data table in a table
-      fn = file.path( datadir, paste( "bathymetry", "hivemod", "input", "prediction", p$spatial.domain,  "rdata", sep=".") )
-      if (DS =="bathymetry.hivemod.inputs.prediction" ) {
-        load( fn)
-        return( B )
-      }
-      B = list( LOCS = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE) )
-      names( B$LOCS ) = c("plon", "plat")
-      save( B, file=fn, compress=TRUE)
-      return(fn)
-    }
-
 
     # ----------------
 
