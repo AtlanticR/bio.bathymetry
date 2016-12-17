@@ -16,30 +16,31 @@ if ( basedata.redo ) {
 }
   
 ### -----------------------------------------------------------------
-
-p = bio.bathymetry::bathymetry.parameters() # reset to defaults
-
-p$hivemod_local_modelengine = "kernel.density"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
-p$storage.backend="bigmemory.ram"  # filebacked metods are still too slow ..
-p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
-
-landmask.redo= FALSE
-if (landmask.redo) {
-  # re-run only if default resolution is altered ... ~ 1 hr?
-  bathymetry.db( DS="landmasks.create", p=p ) 
-}
-
-# 2.2GB/process and 2.2 GB in parent 
+# Spatial interpolation using hivemod
+# ~1GB/process and 1 GB in parent for kernel.density; gam method requires more ~ 2X
 # boundary def takes too long .. too much data to process -- skip
 # ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016
+# ~ 6 hr on hyperion
+p = bio.bathymetry::bathymetry.parameters() # reset to defaults
+p$hivemod_local_modelengine = "kernel.density"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
+p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
 p$clusters = rep("localhost", detectCores() )
 DATA = 'bathymetry.db( p=p, DS="bathymetry.hivemod.data" )'
 p = hivemod( p=p, DATA=DATA )  
-
-
 # bring together stats and predictions and any other required computations: slope and curvature
 bathymetry.db( p=p, DS="bathymetry.hivemod.finalize.redo" )
 # B = bathymetry( p=p, DS="bathymetry.hivemod.finalize" )     # to see the assimilated data:
+
+
+if (0) {
+  # NOTE USED ANYMORE? Flag for deletion
+  landmask.redo= FALSE
+  if (landmask.redo) {
+    # re-run only if default resolution is altered ... ~ 1 hr?
+    bathymetry.db( DS="landmasks.create", p=p ) 
+  }
+}
+
 
 ### -----------------------------------------------------------------
 # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
