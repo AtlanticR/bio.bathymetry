@@ -2,60 +2,48 @@
 # Bathymetry 
 # warning: this will take weeks as it is an iterative process
 
-p = bio.bathymetry::bathymetry.parameters()
 
 if ( basedata.redo ) {
-  # prepare data for modelling and prediction:: faster if you do this step on kaos (the fileserver)
-  # also needs about 42 GB RAM, JC 2015
-  # processing is  at "canada.east.highres" but temporarily drop to "canada.east to update raw data"
-  # p$clusters = c( rep( "nyx", nc ), rep ("tartarus", nc), rep("kaos", nc ) )
-    p=spatial_parameters( p=p, type="canada.east" )
-    bathymetry.db ( p=p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+  p = bio.bathymetry::bathymetry.parameters() 
+  bathymetry.db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
+  bathymetry.db( p=p, DS="bathymetry.hivemod.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+  bathymetry.db( p=p, DS="landmasks.create" ) # re-run only if default resolution 
 }
   
+
 ### -----------------------------------------------------------------
 # Spatial interpolation using hivemod
-# ~1GB/process and 1 GB in parent for kernel.density; gam method requires more ~ 2X
+# Total at "superhighres": 30GB --~3.5 GB/process and 4 GB in parent for kernel.density; gam method requires more ~ 2X
 # boundary def takes too long .. too much data to process -- skip
-# ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016
-# ~ 6 hr on hyperion
+# "highres": ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016 or ~ 6 hr on hyperion
 
 p = bio.bathymetry::bathymetry.parameters() # reset to defaults
-bathymetry.db( p=p, DS="bathymetry.hivemod.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
-
-p$hivemod_local_modelengine = "kernel.density"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
 p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
-p$clusters = rep("localhost", detectCores() )
 p = hivemod( p=p, DATA='bathymetry.db( p=p, DS="bathymetry.hivemod" )' )  
-
-# bring together stats and predictions and any other required computations: slope and curvature
-bathymetry.db( p=p, DS="bathymetry.hivemod.finalize.redo" )
-# B = bathymetry( p=p, DS="bathymetry.hivemod.finalize" )     # to see the assimilated data:
-
-
-if (0) {
-  # NOTE USED ANYMORE? Flag for deletion
-  landmask.redo= FALSE
-  if (landmask.redo) {
-    # re-run only if default resolution is altered ... ~ 1 hr?
-    bathymetry.db( DS="landmasks.create", p=p ) 
-  }
+if (restarting) {
+  hivemod_db(p=p, DS="statistics.status.reset" )
+  p = hivemod( p=p, continue=TRUE ) 
 }
+bathymetry.db( p=p, DS="bathymetry.hivemod.finalize.redo" ) # bring together stats and predictions and any other required computations: slope and curvature
+# B = bathymetry( p=p, DS="bathymetry.hivemod.finalize" )     # to see the assimilated data:
 
 
 ### -----------------------------------------------------------------
 # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
 # if you want more, will need to add to the list and modify the selection criteria
-p$new.grids = c( "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab")
+p = bio.bathymetry::bathymetry.parameters() # reset to defaults
+p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
+p$new.grids = c( "canada.east.ultrahighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab")
 bathymetry.db( p=p, DS="complete.redo", grids.new=p$new.grids )
-bathymetry.db ( p=p, DS="baseline.redo" )   # filtering of areas and or depth to reduce file size, in planar coords only
+bathymetry.db( p=p, DS="baseline.redo" )   # filtering of areas and or depth to reduce file size, in planar coords only
 
 
 ### -----------------------------------------------------------------
 # "snowcrab" subsets do exist but are simple subsets of SSE
 # so only the lookuptable below is all that is important as far as bathymetry is concerned
 # both share the same initial domains + resolutions
-bathymetry.db( p=spatial_parameters( type="snowcrab" ), DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
+p = bio.bathymetry::bathymetry.parameters(resolution="snowcrab") # reset to defaults
+bathymetry.db( p=p, DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
 
 
 ### -----------------------------------------------------------------
@@ -67,12 +55,13 @@ if( bathyclines.redo ) {
   # note these polygons are created at the resolution specified in p$spatial.domain ..
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
   # For lower one specify an appropriate p$spatial.domain
+  p = bio.bathymetry::bathymetry.parameters() # reset to defaults
   plygn = isobath.db( p=p, DS="isobath.redo", depths=depths  )
 }
 
 
-
 ### -----------------------------------------------------------------
+p = bio.bathymetry::bathymetry.parameters() # reset to defaults
 plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 
 coast = coastline.db( xlim=c(-68,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
@@ -95,8 +84,7 @@ plot(plygn_as_xypoints, pch=".",  xaxs="i", yaxs="i", axes=TRUE)
 
 
 # a few plots :
-
-p = spatial_parameters( type="canada.east.highres", p=p )
+p = bio.bathymetry::bathymetry.parameters(resolution="canada.east.highres") # reset to defaults
 b = bathymetry.db( p=p, DS="complete" )
 
 vn = "z"

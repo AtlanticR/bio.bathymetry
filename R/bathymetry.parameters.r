@@ -1,5 +1,5 @@
 
-bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada.east.highres" ) {
+bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) {
 
   if ( is.null(p) ) p=list()
   if ( !exists("project.name", p) ) p$project.name=DS
@@ -10,9 +10,9 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$libs = c( p$libs, RLibrary( c( "rgdal", "maps", "mapdata", "maptools", "lattice", "parallel", 
       "geosphere", "sp", "raster", "colorspace", "splancs" ) ) )
  
-    p$default.spatial.resolution = "canada.east.highres"
-    p = spatial_parameters(p=p, type=p$default.spatial.resolution )  # default (= only supported resolution of 0.5 km discretization)  .. do NOT change
- 
+    p$default.spatial.resolution = "canada.east.superhighres"
+    if (is.null( resolution )) resolution=p$default.spatial.resolution
+    p = spatial_parameters(p=p, type=resolution )  # default (= only supported resolution of 0.2 km discretization)  .. do NOT change
     return(p)
   }
 
@@ -20,10 +20,11 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
   if (DS=="hivemod") {
 
     p$libs = RLibrary( c( p$libs, "hivemod" ) ) # required for parallel
+    p$clusters = rep("localhost", detectCores() )
     p$storage.backend="bigmemory.ram"
+    
     p$boundary = FALSE
     p$depth.filter = FALSE # need data above sea level to get coastline
-
     p$hivemod_nonconvexhull_alpha = 20  # radius in distance units (km) to use for determining boundaries
     p$hivemod_phi = p$pres/5 # FFT based method when operating gloablly
     p$hivemod_nu = 0.5 # this is exponential covar
@@ -44,8 +45,10 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution="canada
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale to try in local block search
  
     p$variables = list( Y="z", LOCS=c("plon", "plat") ) 
-   
+
     if (!exists("hivemod_variogram_method", p)) p$hivemod_variogram_method = "fast"
+   
+    p$hivemod_local_modelengine = "kernel.density"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
     if (!exists("hivemod_local_modelengine", p)) p$hivemod_local_modelengine="kernel.density"  # currently the perferred approach 
 
     if ( p$hivemod_local_modelengine =="gaussianprocess2Dt" ) {

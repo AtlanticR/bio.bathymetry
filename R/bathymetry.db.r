@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, additional.data=c("snowcrab", "groundfish"), return.format="dataframe" ) {
+  bathymetry.db = function( p=NULL, DS=NULL, return.format="dataframe" ) {
 
     datadir = project.datadirectory("bio.bathymetry", "data" )  # raw data
 		dir.create( datadir, showWarnings=F, recursive=T )
@@ -11,7 +11,7 @@
   
     if (exists("spatial.domain", p)) {
       # mechanism to override defaults, eg for other regions
-      if ( p$spatial.domain %in% c("SSE", "snowcrab", "SSE.mpa", "canada.east", "canada.east.highres" ) ) {
+      if ( p$spatial.domain %in% c("SSE", "snowcrab", "SSE.mpa", "canada.east", "canada.east.highres", "canada.east.superhighres" ) ) {
         fn.bathymetry.xyz = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
         fn.bathymetry.bin = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.bin" )  # GMT binary .. obsolete method 
       }
@@ -183,6 +183,8 @@
 
       bathy = bathymetry.db( DS="etopo1" )
 
+      additional.data=c("snowcrab", "groundfish")
+
 			if ( "snowcrab" %in% additional.data ) {
         # range from 23.8 to 408 m below sea level ... these have dropped the "-" for below sea level; n=5925 (in 2014)
         # bioLibrary( "bio.snowcrab")
@@ -299,7 +301,7 @@
       redo.bathymetry.rawdata = FALSE
       if ( redo.bathymetry.rawdata ) {
         p = spatial_parameters( type="canada.east", p=p )
-        bathymetry.db ( p, DS="z.lonlat.rawdata.redo", additional.data=c("snowcrab", "groundfish") )
+        bathymetry.db ( p, DS="z.lonlat.rawdata.redo" )
      }
 
       # ------------------
@@ -898,9 +900,12 @@
       print( "Warning: this needs a lot of RAM .. ~40GB depending upon resolution of discretization" )
       
       B = bathymetry.db ( p=p, DS="z.lonlat.rawdata" )  # 16 GB in RAM just to store!
-      B = B[ which(B$z > -100),]  # take part of the land to define coastline
+      # B = B[ which(B$z > -100),]  # take part of the land to define coastline
       B = lonlat2planar( B, proj.type=p$internal.projection )
-
+      B$lon = NULL
+      B$lat = NULL
+      gc()
+      
       # if using kernel density/FFT.. might as well take the gird here as it requires  gridded data 
       B$plon = grid.internal( B$plon, p$plons )
       B$plat = grid.internal( B$plat, p$plats )
