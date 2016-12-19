@@ -925,8 +925,7 @@
     if ( DS == "landmasks.create" ) {
       # on resolution of predictions
       pps  =  expand.grid( plons=p$plons, plats=p$plats, KEEP.OUT.ATTRS=FALSE)
-      uu = planar2lonlat( pps[1:10,], proj.type=p$internal.crs )[, c("lon", "lat" )]
-      V = SpatialPoints( uu, CRS("+proj=longlat +datum=WGS84") )
+      V = SpatialPoints( planar2lonlat( pps, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
       landmask( lonlat=V, db="worldHires", regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="predictions" )
 
       # on resolution of statistics
