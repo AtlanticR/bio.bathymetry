@@ -6,8 +6,8 @@
 if ( basedata.redo ) {
   p = bio.bathymetry::bathymetry.parameters() 
   bathymetry.db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
+  bathymetry.db( p=p, DS="landmasks.create" ) # re-run only if default resolution .. v. slow ...
   bathymetry.db( p=p, DS="bathymetry.hivemod.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
-  bathymetry.db( p=p, DS="landmasks.create" ) # re-run only if default resolution 
 }
   
 
@@ -16,7 +16,7 @@ if ( basedata.redo ) {
 # Total at "superhighres": 30GB --~3.5 GB/process and 4 GB in parent for kernel.density; gam method requires more ~ 2X
 # boundary def takes too long .. too much data to process -- skip
 # "highres": ~ 20 hr with 8, 3.2 Ghz cpus on thoth using kernel.density method jc: 2016 or ~ 6 hr on hyperion
-
+# "superhighres": ~ 40hr with 8 cpu on thoth
 p = bio.bathymetry::bathymetry.parameters() # reset to defaults
 p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
 p = hivemod( p=p, DATA='bathymetry.db( p=p, DS="bathymetry.hivemod" )' )  
