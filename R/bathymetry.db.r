@@ -952,7 +952,9 @@
       nr = p$nplons
       nc = p$nplats
 
-      B = bathymetry.db( p=p, DS="bathymetry.hivemod.inputs.prediction") # add to the input dataS
+      # data prediction grid
+      B = expand.grid( plon=p$plons, plat=p$plats, KEEP.OUT.ATTRS=FALSE) 
+
       Bmean = hivemod_db( p=p, DS="hivemod.prediction", ret="mean" )
       Bsd = hivemod_db( p=p, DS="hivemod.prediction", ret="sd" )
       B = cbind(B, Bmean, Bsd)
