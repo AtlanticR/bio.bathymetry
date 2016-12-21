@@ -26,8 +26,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     p$boundary = FALSE
     p$depth.filter = FALSE # need data above sea level to get coastline
     p$hivemod_nonconvexhull_alpha = 20  # radius in distance units (km) to use for determining boundaries
-    p$hivemod_phi = p$pres/5 # FFT based method when operating gloablly
-    p$hivemod_nu = 0.5 # this is exponential covar
+    p$hivemod_lowpass_phi = p$pres/5 # FFT based method when operating gloablly
+    p$hivemod_lowpass_nu = 0.5 # this is exponential covar
     p$hivemod_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$hivemod_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
     
@@ -48,8 +48,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
 
     if (!exists("hivemod_variogram_method", p)) p$hivemod_variogram_method = "fast"
    
-    p$hivemod_local_modelengine = "kernel.density"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
-    if (!exists("hivemod_local_modelengine", p)) p$hivemod_local_modelengine="kernel.density"  # currently the perferred approach 
+    p$hivemod_local_modelengine = "fft"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
+    if (!exists("hivemod_local_modelengine", p)) p$hivemod_local_modelengine="fft"  # currently the perferred approach 
 
     if ( p$hivemod_local_modelengine =="gaussianprocess2Dt" ) {
       # too slow to use right now
@@ -61,12 +61,12 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
         p$fields.cov.args=list( Covariance=p$fields.Covariance, smoothness=p$fields.nu ) # this is exponential covariance 
       }
 
-    } else if (p$hivemod_local_modelengine == "kernel.density") {
-      # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using kernel.density method, bigmemory-filebacked jc: 2016 
+    } else if (p$hivemod_local_modelengine == "fft") {
+      # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using fft method, bigmemory-filebacked jc: 2016 
       # ~ 14 hrs with 8, 3.2 Ghz cpus on thoth; 1 GB per process and a total of 6 GB usage;  method RAM based jc: 2016
       # ~ 5.5 hr on hyperion 
       # definitely a cleaner (not overly smoothed) image than a GAM
-      # NOTE that  p$hivemod_phi and  p$hivemod_nu are very critical choices
+      # NOTE that  p$hivemod_lowpass_phi and  p$hivemod_lowpass_nu are very critical choices
             
     } else if (p$hivemod_local_modelengine == "twostep") {
 
