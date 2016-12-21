@@ -26,12 +26,12 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     p$boundary = FALSE
     p$depth.filter = FALSE # need data above sea level to get coastline
     p$hivemod_nonconvexhull_alpha = 20  # radius in distance units (km) to use for determining boundaries
-    p$hivemod_lowpass_phi = p$pres/5 # FFT based method when operating gloablly
+    p$hivemod_lowpass_phi = p$pres/2 # low pass FFT filter range
     p$hivemod_lowpass_nu = 0.5 # this is exponential covar
     p$hivemod_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$hivemod_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
     
-    p$hivemod_rsquared_threshold = 0.05 # lower threshold
+    p$hivemod_rsquared_threshold = 0.1 # lower threshold
     p$hivemod_distance_prediction = 7.5 # this is a half window km
     p$hivemod_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$hivemod_distance_scale = 25 # km ... approx guess of 95% AC range 
