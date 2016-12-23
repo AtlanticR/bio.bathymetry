@@ -26,8 +26,6 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     p$boundary = FALSE
     p$depth.filter = FALSE # need data above sea level to get coastline
     p$hivemod_nonconvexhull_alpha = 20  # radius in distance units (km) to use for determining boundaries
-    p$hivemod_lowpass_phi = p$pres/2 # low pass FFT filter range
-    p$hivemod_lowpass_nu = 0.5 # this is exponential covar
     p$hivemod_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$hivemod_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
     
@@ -67,7 +65,11 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
       # ~ 5.5 hr on hyperion 
       # definitely a cleaner (not overly smoothed) image than a GAM
       # NOTE that  p$hivemod_lowpass_phi and  p$hivemod_lowpass_nu are very critical choices
-            
+      p$hivemod_fft_filter = "lowpass" # only act as a low pass filter .. depth has enough data for this. Otherwise, use: 
+      # p$hivemod_fft_filter = "spatial.process" to ~ krige
+      p$hivemod_lowpass_phi = 0.5 # low pass FFT filter range .. 0.5 seems to be optimal (by visual inspection)
+      p$hivemod_lowpass_nu = 0.5 # this is exponential covar
+
     } else if (p$hivemod_local_modelengine == "twostep") {
 
       stop( "Makes no sense to use two step as there is no time series")
