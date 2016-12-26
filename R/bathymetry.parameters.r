@@ -62,6 +62,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     } else if (p$hivemod_local_modelengine == "fft") {
       # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using fft method, bigmemory-filebacked jc: 2016 
       # ~ 14 hrs with 8, 3.2 Ghz cpus on thoth; 1 GB per process and a total of 6 GB usage;  method RAM based jc: 2016
+      # 12 hrs to complete stage 1 on hyperion 
       # ~ 5.5 hr on hyperion 
       # definitely a cleaner (not overly smoothed) image than a GAM
       # NOTE that  p$hivemod_lowpass_phi and  p$hivemod_lowpass_nu are very critical choices
@@ -76,7 +77,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     
     } else if (p$hivemod_local_modelengine == "gam") {
       # GAM are overly smooth .. adding more knots might be good but speed is the cost .. k=50 to 100 seems to work nicely
-      # timeings: 14 hrs on hyperion with 100 knots
+      # timings: 
+      # 14 hrs on hyperion with 100 knots
       ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
       p$hivemod_local_modelformula = formula( 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
