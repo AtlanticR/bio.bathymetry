@@ -46,7 +46,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
 
     if (!exists("hivemod_variogram_method", p)) p$hivemod_variogram_method = "fast"
    
-    p$hivemod_local_modelengine = "fft"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
+    p$hivemod_local_modelengine = "krige"  
+    
     if (!exists("hivemod_local_modelengine", p)) p$hivemod_local_modelengine="fft"  # currently the perferred approach 
 
     if ( p$hivemod_local_modelengine %in% c("krige" )) { 
