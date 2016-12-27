@@ -49,8 +49,15 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     p$hivemod_local_modelengine = "fft"  # #1 about 5 X faster than bayesx-mcmc method .. perferred for now
     if (!exists("hivemod_local_modelengine", p)) p$hivemod_local_modelengine="fft"  # currently the perferred approach 
 
+    if ( p$hivemod_local_modelengine %in% c("krige" )) { 
+      p$hivemod_krige_engine="fields" # faster than gstat
+      p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
+
+    }
+
     if ( p$hivemod_local_modelengine =="gaussianprocess2Dt" ) {
       # too slow to use right now
+
       p$fields.cov.function = "stationary.cov"  #
       p$fields.cov.function = "stationary.taper.cov"  # Wendland tapering
       if (!exists("fields.Covariance", p)) p$fields.Covariance="Exponential" # note that "Rad.cov" is TPS
@@ -58,6 +65,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
         if (!exists("fields.nu", p)) p$fields.nu=0.5  # note: this is the smoothness or shape parameter (fix at 0.5 if not calculated or given -- exponential)   
         p$fields.cov.args=list( Covariance=p$fields.Covariance, smoothness=p$fields.nu ) # this is exponential covariance 
       }
+      p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
 
     } else if (p$hivemod_local_modelengine == "fft") {
       # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using fft method, bigmemory-filebacked jc: 2016 
@@ -66,6 +74,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
       # ~ 5.5 hr on hyperion 
       # definitely a cleaner (not overly smoothed) image than a GAM
       # NOTE that  p$hivemod_lowpass_phi and  p$hivemod_lowpass_nu are very critical choices
+      p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
+
       p$hivemod_fft_filter = "lowpass" # only act as a low pass filter .. depth has enough data for this. Otherwise, use: 
       # p$hivemod_fft_filter = "spatial.process" to ~ krige
       p$hivemod_lowpass_phi = 0.5 # low pass FFT filter range .. 0.5 seems to be optimal (by visual inspection)
