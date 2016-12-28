@@ -46,9 +46,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
 
     if (!exists("hivemod_variogram_method", p)) p$hivemod_variogram_method = "fast"
    
-    p$hivemod_local_modelengine = "krige"  # slower but more reasonable amount of smoothing 
-    
-    if (!exists("hivemod_local_modelengine", p)) p$hivemod_local_modelengine="fft"  # currently the perferred approach 
+    if (!exists("hivemod_local_modelengine", p)) p$hivemod_local_modelengine="krige"  # currently the perferred approach ; fft is faster but smoothing is too erratic
 
     if ( p$hivemod_local_modelengine %in% c("krige" )) { 
       p$hivemod_krige_engine="fields" # faster than gstat
