@@ -24,6 +24,10 @@ if (restarting) {
   hivemod_db(p=p, DS="statistics.status.reset" )
   p = hivemod( p=p, continue=TRUE ) 
 }
+
+
+p = bio.bathymetry::bathymetry.parameters() # reset to defaults
+p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
 bathymetry.db( p=p, DS="bathymetry.hivemod.finalize.redo" ) # bring together stats and predictions and any other required computations: slope and curvature
 # B = bathymetry( p=p, DS="bathymetry.hivemod.finalize" )     # to see the assimilated data:
 

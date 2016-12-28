@@ -46,7 +46,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
 
     if (!exists("hivemod_variogram_method", p)) p$hivemod_variogram_method = "fast"
    
-    p$hivemod_local_modelengine = "krige"  
+    p$hivemod_local_modelengine = "krige"  # slower but more reasonable amount of smoothing 
     
     if (!exists("hivemod_local_modelengine", p)) p$hivemod_local_modelengine="fft"  # currently the perferred approach 
 
@@ -54,9 +54,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
       p$hivemod_krige_engine="fields" # faster than gstat
       p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
 
-    }
-
-    if ( p$hivemod_local_modelengine =="gaussianprocess2Dt" ) {
+    } else if ( p$hivemod_local_modelengine =="gaussianprocess2Dt" ) {
       # too slow to use right now
 
       p$fields.cov.function = "stationary.cov"  #
@@ -129,8 +127,6 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
 
     }
 
-    
- 
 
     return(p)
   }
