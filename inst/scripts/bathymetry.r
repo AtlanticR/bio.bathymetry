@@ -17,7 +17,10 @@ if ( basedata.redo ) {
 # boundary def takes too long .. too much data to process -- skip
 # "highres": ~ 20 hr with 8, 3.2 Ghz cpus on thoth using fft method jc: 2016 or ~ 6 hr on hyperion
 # "superhighres": ~ 40hr with 8 cpu on thoth
+
 p = bio.bathymetry::bathymetry.parameters() # reset to defaults
+p$hivemod_local_modelengine = "krige"  
+p$storage.backend="bigmemory.ram"
 p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
 p = hivemod( p=p, DATA='bathymetry.db( p=p, DS="bathymetry.hivemod" )' )  
 if (restarting) {

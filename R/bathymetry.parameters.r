@@ -50,7 +50,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
 
     if ( p$hivemod_local_modelengine %in% c("krige" )) { 
       p$hivemod_krige_engine="fields" # faster than gstat
-      p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
+      p$hivemod_local_family = hivemod::log_gaussian_offset(2000)
 
     } else if ( p$hivemod_local_modelengine =="gaussianprocess2Dt" ) {
       # too slow to use right now
@@ -62,7 +62,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
         if (!exists("fields.nu", p)) p$fields.nu=0.5  # note: this is the smoothness or shape parameter (fix at 0.5 if not calculated or given -- exponential)   
         p$fields.cov.args=list( Covariance=p$fields.Covariance, smoothness=p$fields.nu ) # this is exponential covariance 
       }
-      p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
+      p$hivemod_local_family = hivemod::log_gaussian_offset(2000)
 
     } else if (p$hivemod_local_modelengine == "fft") {
       # ~ 3.25 days hr with 68, 3 Ghz cpus on beowulf using fft method, bigmemory-filebacked jc: 2016 
@@ -71,7 +71,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
       # ~ 5.5 hr on hyperion 
       # definitely a cleaner (not overly smoothed) image than a GAM
       # NOTE that  p$hivemod_lowpass_phi and  p$hivemod_lowpass_nu are very critical choices
-      p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
+      p$hivemod_local_family = hivemod::log_gaussian_offset(2000)
 
       p$hivemod_fft_filter = "lowpass" # only act as a low pass filter .. depth has enough data for this. Otherwise, use: 
       # p$hivemod_fft_filter = "spatial.process" to ~ krige
@@ -86,26 +86,26 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
       # GAM are overly smooth .. adding more knots might be good but speed is the cost .. k=50 to 100 seems to work nicely
       # timings: 
       # 14 hrs on hyperion with 100 knots
-      ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
+      ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
       p$hivemod_local_modelformula = formula( 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
       p$hivemod_local_model_distanceweighted = TRUE  
-      p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
+      p$hivemod_local_family = hivemod::log_gaussian_offset(2000)
     
     } else if ( p$hivemod_local_modelengine == "bayesx" ) {
     
-      ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
+      ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
       p$hivemod_local_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
       p$hivemod_local_model_bayesxmethod="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
       p$hivemod_local_model_distanceweighted = TRUE  
-      p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
+      p$hivemod_local_family = hivemod::log_gaussian_offset(2000)
       p$hivemod_local_family_bayesx ="gaussian"
 
     } else if (p$hivemod_local_modelengine == "inla" ){
       
       # old method .. took a month to finish .. results look good but very slow
-      ## data range is from -100 to 5467 m .. 1000 shifts all to positive valued by one order of magnitude
-      p$hivemod_local_family = hivemod::log_gaussian_offset(1000)
+      ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
+      p$hivemod_local_family = hivemod::log_gaussian_offset(2000)
       p$inla_family = "gaussian"
       p$inla.alpha = 0.5 # bessel function curviness .. ie "nu"
       p$hivemod_local_modelformula = formula( z ~ -1 + intercept + f( spatial.field, model=SPDE ) ) # SPDE is the spatial covaria0nce model .. defined in hivemod___inla
