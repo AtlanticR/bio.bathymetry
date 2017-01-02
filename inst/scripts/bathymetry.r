@@ -7,45 +7,45 @@ if ( basedata.redo ) {
   p = bio.bathymetry::bathymetry.parameters() 
   bathymetry.db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
   bathymetry.db( p=p, DS="landmasks.create" ) # re-run only if default resolution .. v. slow ... currently using sp::over ... replace with point.in.polygon (TODO)
-  bathymetry.db( p=p, DS="bathymetry.hivemod.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+  bathymetry.db( p=p, DS="bathymetry.lbm.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
 }
   
 
 ### -----------------------------------------------------------------
-# Spatial interpolation using hivemod
+# Spatial interpolation using lbm
 # Total at "superhighres": 30GB --~3.5 GB/process and 4 GB in parent for fft; gam method requires more ~ 2X
 # boundary def takes too long .. too much data to process -- skip
 # "highres": ~ 20 hr with 8, 3.2 Ghz cpus on thoth using fft method jc: 2016 or ~ 6 hr on hyperion
 # "superhighres": ~ 40hr with 8 cpu on thoth
+# "superhighres": ~ 60hr with 8 cpu on thoth for "krige" method  
+#   -- looks to be the best in performance/quality; req ~5 GB per process req
 
 p = bio.bathymetry::bathymetry.parameters() # reset to defaults
-p$hivemod_local_modelengine = "krige"  
+p$lbm_local_modelengine = "krige"  
 p$storage.backend="bigmemory.ram"
-p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
-p = hivemod( p=p, DATA='bathymetry.db( p=p, DS="bathymetry.hivemod" )' )  
+p = bio.bathymetry::bathymetry.parameters( p=p, DS="lbm" )
+# p$clusters = rep("localhost",  detectCores() )
+
+
+p = lbm( p=p, DATA='bathymetry.db( p=p, DS="bathymetry.lbm" )' )   
 if (restarting) {
-  hivemod_db(p=p, DS="statistics.status.reset" )
-  p = hivemod( p=p, continue=TRUE ) 
+  lbm_db(p=p, DS="statistics.status.reset" )
+  p = lbm( p=p, continue=TRUE ) 
 }
 
 
-p = bio.bathymetry::bathymetry.parameters() # reset to defaults
-p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
-bathymetry.db( p=p, DS="bathymetry.hivemod.finalize.redo" ) # bring together stats and predictions and any other required computations: slope and curvature
-# B = bathymetry( p=p, DS="bathymetry.hivemod.finalize" )     # to see the assimilated data:
+# bring together stats and predictions and any other required computations: slope and curvature
+bathymetry.db( p=p, DS="bathymetry.lbm.finalize.redo" ) 
+# B = bathymetry( p=p, DS="bathymetry.lbm.finalize" )     # to see the assimilated data:
 
 
-### -----------------------------------------------------------------
 # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
 # if you want more, will need to add to the list and modify the selection criteria
-p = bio.bathymetry::bathymetry.parameters() # reset to defaults
-p = bio.bathymetry::bathymetry.parameters( p=p, DS="hivemod" )
 p$new.grids = c( "canada.east.ultrahighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab")
 bathymetry.db( p=p, DS="complete.redo", grids.new=p$new.grids )
 bathymetry.db( p=p, DS="baseline.redo" )   # filtering of areas and or depth to reduce file size, in planar coords only
 
 
-### -----------------------------------------------------------------
 # "snowcrab" subsets do exist but are simple subsets of SSE
 # so only the lookuptable below is all that is important as far as bathymetry is concerned
 # both share the same initial domains + resolutions

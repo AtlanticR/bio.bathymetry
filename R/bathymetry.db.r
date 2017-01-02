@@ -889,10 +889,10 @@
 
     # ----------------
 
-    if ( DS %in% c("bathymetry.hivemod", "bathymetry.hivemod.redo" )) {
+    if ( DS %in% c("bathymetry.lbm", "bathymetry.lbm.redo" )) {
 
-      fn = file.path( datadir, paste( "bathymetry", "hivemod", "rdata", sep=".") )
-      if (DS =="bathymetry.hivemod" ) {
+      fn = file.path( datadir, paste( "bathymetry", "lbm", "rdata", sep=".") )
+      if (DS =="bathymetry.lbm" ) {
         load( fn)
         return( hm )
       }
@@ -938,12 +938,12 @@
 
     #-------------------------
 
-    if ( DS %in% c("bathymetry.hivemod.finalize.redo", "bathymetry.hivemod.finalize" )) {
-      #// bathymetry( p, DS="bathymetry.hivemod.finalize(.redo)" return/create the
-      #//   hivemod interpolated method formatted and finalised for production use
+    if ( DS %in% c("bathymetry.lbm.finalize.redo", "bathymetry.lbm.finalize" )) {
+      #// bathymetry( p, DS="bathymetry.lbm.finalize(.redo)" return/create the
+      #//   lbm interpolated method formatted and finalised for production use
       fn = file.path(  project.datadirectory("bio.bathymetry"), "interpolated",
-        paste( "bathymetry", "hivemod", "finalized", p$spatial.domain, "rdata", sep=".") )
-      if (DS =="bathymetry.hivemod.finalize" ) {
+        paste( "bathymetry", "lbm", "finalized", p$spatial.domain, "rdata", sep=".") )
+      if (DS =="bathymetry.lbm.finalize" ) {
         B = NULL
         if ( file.exists ( fn) ) load( fn)
         return( B )
@@ -955,8 +955,8 @@
       # data prediction grid
       B = expand.grid( plon=p$plons, plat=p$plats, KEEP.OUT.ATTRS=FALSE) 
 
-      Bmean = hivemod_db( p=p, DS="hivemod.prediction", ret="mean" )
-      Bsd = hivemod_db( p=p, DS="hivemod.prediction", ret="sd" )
+      Bmean = lbm_db( p=p, DS="lbm.prediction", ret="mean" )
+      Bsd = lbm_db( p=p, DS="lbm.prediction", ret="sd" )
       B = cbind(B, Bmean, Bsd)
       rm (Bmean, Bsd); gc()
       names(B) = c( "plon", "plat", "z", "z.sd") # really Z.mean but for historical compatibility "z"
@@ -992,7 +992,7 @@
       B$ddZ = abs(c(ddZ))
 
       # merge into statistics
-      BS = hivemod_db( p=p, DS="stats.to.prediction.grid" )
+      BS = lbm_db( p=p, DS="stats.to.prediction.grid" )
       B = cbind( B, BS )
       rm (BS); gc()
 
@@ -1065,7 +1065,7 @@
       }
 
       p0 = p  # the originating parameters
-      Z0 = bathymetry.db( p=p0, DS="bathymetry.hivemod.finalize" )
+      Z0 = bathymetry.db( p=p0, DS="bathymetry.lbm.finalize" )
       coordinates( Z0 ) = ~ plon + plat
       crs(Z0) = crs( p0$interal.crs )
       above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
