@@ -889,10 +889,10 @@
 
     # ----------------
 
-    if ( DS %in% c("bathymetry.lbm", "bathymetry.lbm.redo" )) {
+    if ( DS %in% c("lbm.inputs", "lbm.inputs.redo" )) {
 
-      fn = file.path( datadir, paste( "bathymetry", "lbm", "rdata", sep=".") )
-      if (DS =="bathymetry.lbm" ) {
+      fn = file.path( datadir, paste( "bathymetry", "lbm.inputs", "rdata", sep=".") )
+      if (DS =="lbm.inputs" ) {
         load( fn)
         return( hm )
       }
@@ -938,12 +938,12 @@
 
     #-------------------------
 
-    if ( DS %in% c("bathymetry.lbm.finalize.redo", "bathymetry.lbm.finalize" )) {
-      #// bathymetry( p, DS="bathymetry.lbm.finalize(.redo)" return/create the
+    if ( DS %in% c("lbm.finalize.redo", "lbm.finalize" )) {
+      #// bathymetry( p, DS="lbm.finalize(.redo)" return/create the
       #//   lbm interpolated method formatted and finalised for production use
       fn = file.path(  project.datadirectory("bio.bathymetry"), "interpolated",
         paste( "bathymetry", "lbm", "finalized", p$spatial.domain, "rdata", sep=".") )
-      if (DS =="bathymetry.lbm.finalize" ) {
+      if (DS =="lbm.finalize" ) {
         B = NULL
         if ( file.exists ( fn) ) load( fn)
         return( B )
@@ -961,10 +961,10 @@
       rm (Bmean, Bsd); gc()
       names(B) = c( "plon", "plat", "z", "z.sd") # really Z.mean but for historical compatibility "z"
 
-      # remove land
-      oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
-      B$z[oc] = NA
-      B$z.sd[oc] = NA
+      # # remove land
+      # oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
+      # B$z[oc] = NA
+      # B$z.sd[oc] = NA
 
       Bmn = matrix( data=B$z, nrow=nr, ncol=nc )  # means
 
@@ -1002,10 +1002,10 @@
       return(fn)
 
       if (0) {
-        aoi = which( B$z > 5 & B$z < 3000 & B$Z.rangeMode < 500)
+        aoi = which( B$z > 5 & B$z < 3000 )
         levelplot( log(z) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-        levelplot( log(Z.rangeMode) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
-        levelplot( Z.rangeSD ~ plon + plat, B[aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+        levelplot( log(phi) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+        levelplot( log(range) ~ plon + plat, B[aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
 
       }
     }
@@ -1065,17 +1065,18 @@
       }
 
       p0 = p  # the originating parameters
-      Z0 = bathymetry.db( p=p0, DS="bathymetry.lbm.finalize" )
+      Z0 = bathymetry.db( p=p0, DS="lbm.finalize" )
       coordinates( Z0 ) = ~ plon + plat
       crs(Z0) = crs( p0$interal.crs )
-      above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
-      if (length(above.sealevel)>0) Z0[ above.sealevel ] = NA
+      # above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
+      # if (length(above.sealevel)>0) Z0[ above.sealevel ] = NA
 
       Z = list()
 
       grids = unique( c( p$spatial.domain, p$grids.new ))
 
       for (gr in grids ) {
+        print(gr)
         p1 = spatial_parameters( type=gr )
         for (vn in names(Z0)) {
           Z[[vn]] = raster::projectRaster(

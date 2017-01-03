@@ -7,7 +7,7 @@ if ( basedata.redo ) {
   p = bio.bathymetry::bathymetry.parameters() 
   bathymetry.db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
   bathymetry.db( p=p, DS="landmasks.create" ) # re-run only if default resolution .. v. slow ... currently using sp::over ... replace with point.in.polygon (TODO)
-  bathymetry.db( p=p, DS="bathymetry.lbm.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
+  bathymetry.db( p=p, DS="lbm.inputs.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
 }
   
 
@@ -27,7 +27,7 @@ p = bio.bathymetry::bathymetry.parameters( p=p, DS="lbm" )
 # p$clusters = rep("localhost",  detectCores() )
 
 
-p = lbm( p=p, DATA='bathymetry.db( p=p, DS="bathymetry.lbm" )' )   
+p = lbm( p=p, DATA='bathymetry.db( p=p, DS="lbm.inputs" )' )   
 if (restarting) {
   lbm_db(p=p, DS="statistics.status.reset" )
   p = lbm( p=p, continue=TRUE ) 
@@ -35,13 +35,13 @@ if (restarting) {
 
 
 # bring together stats and predictions and any other required computations: slope and curvature
-bathymetry.db( p=p, DS="bathymetry.lbm.finalize.redo" ) 
-# B = bathymetry( p=p, DS="bathymetry.lbm.finalize" )     # to see the assimilated data:
+bathymetry.db( p=p, DS="lbm.finalize.redo" ) 
+# B = bathymetry( p=p, DS="lbm.finalize" )     # to see the assimilated data:
 
 
 # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
 # if you want more, will need to add to the list and modify the selection criteria
-p$new.grids = c( "canada.east.ultrahighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab")
+p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab")
 bathymetry.db( p=p, DS="complete.redo", grids.new=p$new.grids )
 bathymetry.db( p=p, DS="baseline.redo" )   # filtering of areas and or depth to reduce file size, in planar coords only
 
@@ -91,30 +91,15 @@ plot(plygn_as_xypoints, pch=".",  xaxs="i", yaxs="i", axes=TRUE)
 
 
 # a few plots :
-p = bio.bathymetry::bathymetry.parameters(resolution="canada.east.highres") # reset to defaults
-b = bathymetry.db( p=p, DS="complete" )
 
-vn = "z"
-u = b[[vn]] [ is.finite( b[[vn]]) ]
-if (length( u) > 0 ) out = x[u]
-
-mypalette = colorRampPalette(c("darkblue","blue3", "green", "yellow", "orange","red3", "darkred"), space = "Lab")(100)
-mybreaks = classIntervals( u, n=length(mypalette), style="quantile")$brks
-
-depths = c( 100, 200, 300, 400, 500 )
-plygn = isobath.db( p=p, DS="isobath", depths=depths  )
-
-sab = as( Polygon( coords=polygon.db( id="aoi.st.anns") ), "SpatialPolygons" )
-sab = spTransform( sab, crs( plygn) )
-
-sp.layout= list( sab, plygn )
-
-spplot( b, vn, col.regions=mypalette, main=vn, sp.layout=coastLayout, col="transparent" )
+p = bio.bathymetry::bathymetry.parameters(resolution="canada.east.highres")
+bathymetry.figures( p=p, vn="z", logyvar=TRUE )
 
 
-#### New method -- "fast"(er) estimation of covariance function
-# using geoR .. most stable and flexible approach so far, uses ML methods
-# spBayes a little to unstable and slow
+p = bio.bathymetry::bathymetry.parameters(resolution="canada.east.superhighres")
+bathymetry.figures( p=p, vn="z", logyvar=TRUE )
 
 
+p = bio.bathymetry::bathymetry.parameters(resolution="snowcrab")
+bathymetry.figures( p=p, vn="z", logyvar=TRUE )
 
