@@ -41,8 +41,9 @@ bathymetry.db( p=p, DS="lbm.finalize.redo" )
 
 # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
 # if you want more, will need to add to the list and modify the selection criteria
-p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa" , "snowcrab")
-bathymetry.db( p=p, DS="complete.redo", grids.new=p$new.grids )
+p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", 
+                  "SSE", "SSE.mpa" , "snowcrab")
+bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions
 bathymetry.db( p=p, DS="baseline.redo" )   # filtering of areas and or depth to reduce file size, in planar coords only
 
 

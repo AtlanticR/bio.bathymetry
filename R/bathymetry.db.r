@@ -1033,11 +1033,6 @@
           paste( "bathymetry", "complete", domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
 
-        if ( return.format == "brick" ) {
-          Z = brick(Z)
-          return( Z )
-        }
-
         if ( return.format == "dataframe" ) { ## default
           Z = as( brick(Z), "SpatialPointsDataFrame" )
           Z = as.data.frame(Z)
@@ -1057,37 +1052,79 @@
           return( Z )
         }
 
-        if ( return.format == "SpatialPointsDataFrame" ) { ## default
-          Z = as( brick(Z), "SpatialPointsDataFrame" )
-          return( Z )
-        }
-        if ( return.format %in% c("list") ) return( Z  )
       }
 
       p0 = p  # the originating parameters
-      Z0 = bathymetry.db( p=p0, DS="lbm.finalize" )
-      coordinates( Z0 ) = ~ plon + plat
-      crs(Z0) = crs( p0$interal.crs )
-      # above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
-      # if (length(above.sealevel)>0) Z0[ above.sealevel ] = NA
 
-      Z = list()
+      p0$wgts = fields::setup.image.smooth( 
+        nrow=p0$nplons, ncol=p0$nplats, dx=p0$pres, dy=p0$pres,
+        theta=p0$pres, xwidth=4*p0$pres, ywidth=4*p0$pres )
+      
+      Z0 = bathymetry.db( p=p0, DS="lbm.finalize" )
+      coords = c("plon","plat")
+      varnames = setdiff( names(Z0), coords )  
+      #using fields
 
       grids = unique( c( p$spatial.domain, p$grids.new ))
+      Z0_i = as.matrix( round( cbind( 
+        ( Z0$plon-p0$plons[1])/p0$pres + 1, (Z0$plat-p0$plats[1])/p0$pres + 1
+      ) ) ) 
 
       for (gr in grids ) {
         print(gr)
-        p1 = spatial_parameters( type=gr )
-        for (vn in names(Z0)) {
-          Z[[vn]] = raster::projectRaster(
-            from = raster::rasterize( Z0, bio.spacetime::spatial_parameters_to_raster(p0), field=vn, fun=mean),
-            to   = bio.spacetime::spatial_parameters_to_raster( p1) )
+        p1 = spatial_parameters( type=gr ) #target projection
+        Z = expand.grid( plon=p1$plons, plat=p1$plats, KEEP.OUT.ATTRS=FALSE )
+
+        for (vn in varnames) {
+          M = fields::as.image( Z0[[vn]], ind=Z0_i, na.rm=TRUE, nx=p0$nplons, ny=p0$nplats )
+          Z1 = fields::interp.surface( M, loc=Z[,coords] )
+          Z[vn] = c(Z1)
+          ii = which( !is.finite( Z[vn] ) )
+          if ( length( ii) > 0 ) {
+            # try again ..
+            Z2 = fields::interp.surface( M, loc=Z[ii, coords] )
+            Z[vn][ii] = Z2[ii]  
+          }
+          ii = which( !is.finite( Z[vn] ) )
+          if ( length( ii) > 0 ) {
+            Z3 =  fields::image.smooth( M, dx=p0$pres, dy=p0$pres, wght=p0$wght )$z
+            Z[vn][ii] = Z3[ii]
+          }
         }
+
         fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
           paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
         save (Z, file=fn, compress=TRUE)
-        print(fn)
       }
+
+
+      if (0) {
+        #raster-based ... older method .. obsolete
+          coordinates( Z0 ) = ~ plon + plat
+          crs(Z0) = crs( p0$interal.crs )
+          # above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
+          # if (length(above.sealevel)>0) Z0[ above.sealevel ] = NA
+
+          Z = list()
+
+          grids = unique( c( p$spatial.domain, p$grids.new ))
+
+          for (gr in grids ) {
+            print(gr)
+            p1 = spatial_parameters( type=gr )
+            for (vn in names(Z0)) {
+              Z[[vn]] = raster::projectRaster(
+                from = raster::rasterize( Z0, bio.spacetime::spatial_parameters_to_raster(p0), field=vn, fun=mean),
+                to   = bio.spacetime::spatial_parameters_to_raster( p1) )
+            }
+            fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
+              paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
+            save (Z, file=fn, compress=TRUE)
+            print(fn)
+          }
+      }
+
+
       return ( "Completed subsets" )
     }
 
