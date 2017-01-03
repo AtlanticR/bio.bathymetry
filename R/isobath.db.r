@@ -18,22 +18,17 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
 
     p1 = spatial_parameters( type="canada.east.superhighres" )
     depths = sort( unique(c(depths, notfound) ))
-
-    if (0) {
-      Z = bathymetry.db( p=p1, DS="complete", return.format="list" )$z  # raster layer in planar coords
-      cl = contourLines( x=p1$plons, y=p1$plats, t(as.matrix( flip( Z, direction="y") )), levels=depths )
-    }
     
-    Z = bathymetry.db( p=p1, DS="complete" )
+    Z = bathymetry.db( p=p1, DS="complete" )[ , c("plon", "plat", "z")]
     Zi = as.matrix( round( cbind( 
       ( Z$plon-p1$plons[1])/p1$pres + 1, (Z$plat-p1$plats[1])/p1$pres + 1
     ))) 
-
-    Zm = fields::as.image( Z$z, ind=Zi, na.rm=TRUE, nx=p1$nplons, ny=p1$nplats )
-    cl = contourLines( x=p1$plons, y=p1$plats, Zm$z, levels=depths )
-    str(cl)
-    stop ("need to confirm above")
-
+    
+    Zm = matrix( NA, ncol=p1$nplats, nrow=p1$nplons )
+    Zm[Zi] = Z$z
+    rm(Z); gc()
+    cl = contourLines( x=p1$plons, y=p1$plats, Zm, levels=depths )
+ 
     isobaths = maptools::ContourLines2SLDF(cl, proj4string=CRS( p1$internal.crs ) )
     row.names(slot(isobaths, "data")) = as.character(depths)
     for (i in 1:length(depths)) slot( slot(isobaths, "lines")[[i]], "ID") = as.character(depths[i])
