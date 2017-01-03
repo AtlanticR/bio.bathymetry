@@ -796,44 +796,6 @@
       # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
     }
 
-    # ------------
-
-    if (DS %in% c("baseline", "baseline.redo") ) {
-      # form prediction surface in planar coords
-
-      if ( DS=="baseline" ) {
-        outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated",
-          paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
-        Z = NULL
-        load( outfile )
-        return (Z)
-      }
-
-      for (domain in p$new.grids) {
-        pn = spatial_parameters( type=domain )
-        if ( pn$spatial.domain == "snowcrab" ) {
-          # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
-          pn = spatial_parameters( type="SSE", p=pn ) 
-        }
-        Z = bathymetry.db( p=pn, DS="complete"  )
-        Z = filter.bathymetry( DS=domain, Z=Z )
-      
-        names0 = names( Z)
-        Z = as.data.frame(Z)
-        names(Z) = c( names0, "plon", "plat")
-        Z = Z[, c("plon", "plat", "z")]
-        
-        outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated",
-          paste( domain, "baseline.interpolated.rdata" , sep=".") )
-
-        save (Z, file=outfile, compress=T )
-        print( outfile )
-      }
-      # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
-			return( "completed" )
-    }
-
-
     # --------------
 
     if (DS %in% c( "complete.gmt", "complete.gmt.redo") ) {
@@ -1115,6 +1077,44 @@
 
       return ( "Completed subsets" )
     }
+
+
+
+    # ------------
+
+    if (DS %in% c("baseline", "baseline.redo") ) {
+      # form prediction surface in planar coords
+
+      if ( DS=="baseline" ) {
+        outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated",
+          paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
+        Z = NULL
+        load( outfile )
+        return (Z)
+      }
+
+      for (domain in p$new.grids) {
+        pn = spatial_parameters( type=domain )
+        if ( pn$spatial.domain == "snowcrab" ) {
+          # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
+          pn = spatial_parameters( type="SSE", p=pn ) 
+        }
+        Z = bathymetry.db( p=pn, DS="complete"  )
+        Z = filter.bathymetry( DS=domain, Z=Z )
+      
+        Z = Z[, c("plon", "plat", "z")]
+        
+        outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated",
+          paste( domain, "baseline.interpolated.rdata" , sep=".") )
+
+        save (Z, file=outfile, compress=T )
+        print( outfile )
+      }
+      # require (lattice); levelplot( z~plon+plat, data=Z, aspect="iso")
+      return( "completed" )
+    }
+
+
 
   }  # end bathymetry.db
 

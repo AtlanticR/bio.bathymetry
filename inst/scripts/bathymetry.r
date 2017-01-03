@@ -41,16 +41,20 @@ bathymetry.db( p=p, DS="lbm.finalize.redo" )
 
 # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
 # if you want more, will need to add to the list and modify the selection criteria
+# .. still uses about 34 GB as the base layer is "superhighres" .. 
+# if parallelizing .. use different servers than local nodes
 p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", 
                   "SSE", "SSE.mpa" , "snowcrab")
 bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions
+
+
 bathymetry.db( p=p, DS="baseline.redo" )   # filtering of areas and or depth to reduce file size, in planar coords only
 
 
 # "snowcrab" subsets do exist but are simple subsets of SSE
 # so only the lookuptable below is all that is important as far as bathymetry is concerned
 # both share the same initial domains + resolutions
-p = bio.bathymetry::bathymetry.parameters(resolution="snowcrab") # reset to defaults
+p = bio.bathymetry::bathymetry.parameters(resolution="snowcrab") # reset defaults to snowcrab
 bathymetry.db( p=p, DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
 
 

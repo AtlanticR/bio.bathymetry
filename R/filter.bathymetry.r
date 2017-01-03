@@ -11,6 +11,11 @@ filter.bathymetry = function( DS, Z ) {
   if (length( inside ) > 0) Z = Z[ inside, ]
 
 
+  if ( DS == "canada.east.superhighres" ) {
+    Z = Z[ which( Z$z < 5000 & Z$z > 0) , ] 
+  }
+ 
+
   if ( DS == "canada.east.highres" ) {
     Z = Z[ which( Z$z < 5000 & Z$z > 0) , ] 
   }
