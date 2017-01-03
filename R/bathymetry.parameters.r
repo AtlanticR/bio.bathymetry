@@ -87,7 +87,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
       p$lbm_local_modelformula = formula( 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
       p$lbm_local_model_distanceweighted = TRUE  
-    
+      p$lbm_gam_optimizer ="perf"
+
     } else if ( p$lbm_local_modelengine == "bayesx" ) {
     
       ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude

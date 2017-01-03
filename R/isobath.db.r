@@ -16,7 +16,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
       }
     }
 
-    p1 = spatial_parameters( type="canada.east.highres" )
+    p1 = spatial_parameters( type="canada.east.superhighres" )
     depths = sort( unique(c(depths, notfound) ))
 
     Z = bathymetry.db( p=p1, DS="complete", return.format="list" )$z  # raster layer in planar coords
