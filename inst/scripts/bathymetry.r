@@ -41,7 +41,7 @@ bathymetry.db( p=p, DS="lbm.finalize.redo" )
 
 # as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
 # if you want more, will need to add to the list and modify the selection criteria
-# .. still uses about 34 GB as the base layer is "superhighres" .. 
+# .. still uses about 30-40 GB as the base layer is "superhighres" .. 
 # if parallelizing .. use different servers than local nodes
 p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", 
                   "SSE", "SSE.mpa" , "snowcrab")
