@@ -1,8 +1,10 @@
 
-  landmask = function( lonlat=NULL, db="worldHires", regions=c("Canada", "US"), proj4strvalue=NULL, return.value="not.land", tag="index", ... ) {
+  landmask = function( lonlat=NULL, db="worldHires", regions=c("Canada", "US"), proj4strvalue=NULL, return.value="not.land", tag="index", internal.projection=NULL, ... ) {
     #\\ Using the world coastline data base:
     #\\ return.value determines what is returned: "coast.lonat", "coast.polygon" (sp),
     #\\ or indices of"not.land", "land"
+
+    if (is.null(internal.projection)) stop("internal.projection is required")
 
     require(maps)
     require(mapdata)
@@ -10,7 +12,7 @@
     require(rgdal)
     require(sp)
 
-    fn = file.path( project.datadirectory("bio.bathymetry"), "landmask", paste( tag, db, paste0(regions, collapse=""), p$internal.projection, "rdata", sep="."))
+    fn = file.path( project.datadirectory("bio.bathymetry"), "landmask", paste( tag, db, paste0(regions, collapse=""), internal.projection, "rdata", sep="."))
     dir.create( dirname(fn), recursive=TRUE, showWarnings=FALSE  )
 
     if (is.null( lonlat)) {

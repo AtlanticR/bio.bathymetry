@@ -43,12 +43,13 @@ bathymetry.db( p=p, DS="lbm.finalize.redo" )
 # if you want more, will need to add to the list and modify the selection criteria
 # .. still uses about 30-40 GB as the base layer is "superhighres" .. 
 # if parallelizing .. use different servers than local nodes
+  # this requires "raster" (it is possible to use fields and be a bit faster but this is simpler for now .. do  not forget to take care of the different projections)
 p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", 
                   "SSE", "SSE.mpa" , "snowcrab")
 bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions
 
 
-bathymetry.db( p=p, DS="baseline.redo" )   # filtering of areas and or depth to reduce file size, in planar coords only
+bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filtering of areas and or depth to reduce file size, in planar coords only
 
 
 # "snowcrab" subsets do exist but are simple subsets of SSE

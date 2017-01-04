@@ -1,19 +1,11 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, return.format="dataframe" ) {
+  bathymetry.db = function( p=NULL, DS=NULL, return.format="dataframe", varnames=NULL ) {
 
     datadir = project.datadirectory("bio.bathymetry", "data" )  # raw data
 		dir.create( datadir, showWarnings=F, recursive=T )
 
     #\\ Note inverted convention: depths are positive valued
     #\\ i.e., negative valued for above sea level and positive valued for below sea level
-    fn.bathymetry.xyz = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz" )
-  
-    if (exists("spatial.domain", p)) {
-      # mechanism to override defaults, eg for other regions
-      if ( p$spatial.domain %in% c("SSE", "snowcrab", "SSE.mpa", "canada.east", "canada.east.highres", "canada.east.superhighres" ) ) {
-        fn.bathymetry.xyz = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
-      }
-    }
 
     if ( DS=="gebco") {
       #library(RNetCDF)
@@ -263,6 +255,15 @@
 
       save( bathy, file=fn, compress=T )
       
+      fn.bathymetry.xyz = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz" )
+    
+      if (exists("spatial.domain", p)) {
+        # mechanism to override defaults, eg for other regions
+        if ( p$spatial.domain %in% c("SSE", "snowcrab", "SSE.mpa", "canada.east", "canada.east.highres", "canada.east.superhighres" ) ) {
+          fn.bathymetry.xyz = file.path( project.datadirectory("bio.bathymetry"), "data", "bathymetry.canada.east.xyz" )  # ascii
+        }
+      }
+
       fn.xz = xzfile( paste( fn.bathymetry.xyz, ".xz", sep="" ) )
       write.table( bathy, file=fn.xz, col.names=F, quote=F, row.names=F)
       system( paste( "xz",  fn.bathymetry.xyz ))  # compress for space
@@ -532,14 +533,14 @@
       # on resolution of predictions
       pps  =  expand.grid( plons=p$plons, plats=p$plats, KEEP.OUT.ATTRS=FALSE)
       V = SpatialPoints( planar2lonlat( pps, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
-      landmask( lonlat=V, db="worldHires", regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="predictions" )
+      landmask( lonlat=V, db="worldHires", regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="predictions" ,internal.projection=p$internal.projection)
 
       # on resolution of statistics
       V = as.data.frame(p$ff$Sloc[])
       names(V) = c("plon", "plat")
       # V = data.frame( cbind(plon=Sloc[,1], plat=Sloc[,2]) )
       V = SpatialPoints( planar2lonlat( V, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
-      landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" )
+      landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" ,internal.projection=p$internal.projection)
     }
 
     #-------------------------
@@ -642,6 +643,38 @@
 
       }
 
+      Z = list()
+
+      p0 = p  # the originating parameters
+      Z0 = bathymetry.db( p=p0, DS="lbm.finalize" )
+      coordinates( Z0 ) = ~ plon + plat
+      crs(Z0) = crs( p0$interal.crs )
+      
+      grids = unique( c( p$spatial.domain, p$new.grids ))
+
+      for (gr in grids ) {
+        print(gr)
+        p1 = spatial_parameters( type=gr )
+        for (vn in names(Z0)) {
+          Z[[vn]] = raster::projectRaster(
+            from = raster::rasterize( Z0, bio.spacetime::spatial_parameters_to_raster(p0), field=vn, fun=mean),
+            to   = bio.spacetime::spatial_parameters_to_raster( p1) )
+        }
+        Z = as( brick(Z), "SpatialPointsDataFrame" )
+        Z = as.data.frame(Z)
+        u = names(Z)
+        names(Z)[ which( u=="x") ] = "plon"
+        names(Z)[ which( u=="y") ] = "plat"
+        fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
+          paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
+        save (Z, file=fn, compress=TRUE)
+      }
+
+
+if (0) {
+  # -- incomplete TODO .. need a layer to covert everything to the same projection first before warping 
+  # and then return it to desired output projection  
+  
       p0 = p  # the originating parameters
 
       p0$wgts = fields::setup.image.smooth( 
@@ -686,31 +719,8 @@
       }
 
 
-      if (0) {
-        #raster-based ... older method .. obsolete
-          coordinates( Z0 ) = ~ plon + plat
-          crs(Z0) = crs( p0$interal.crs )
-          # above.sealevel = which( Z0$z < -1 ) # depth values < 0 are above  .. retain 1 m above to permits isobath calc
-          # if (length(above.sealevel)>0) Z0[ above.sealevel ] = NA
+}
 
-          Z = list()
-
-          grids = unique( c( p$spatial.domain, p$new.grids ))
-
-          for (gr in grids ) {
-            print(gr)
-            p1 = spatial_parameters( type=gr )
-            for (vn in names(Z0)) {
-              Z[[vn]] = raster::projectRaster(
-                from = raster::rasterize( Z0, bio.spacetime::spatial_parameters_to_raster(p0), field=vn, fun=mean),
-                to   = bio.spacetime::spatial_parameters_to_raster( p1) )
-            }
-            fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
-              paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
-            save (Z, file=fn, compress=TRUE)
-            print(fn)
-          }
-      }
 
 
       return ( "Completed subsets" )
@@ -728,6 +738,10 @@
           paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
         Z = NULL
         load( outfile )
+        if (is.null(varnames)) varnames =c("plon", "plat")
+        Znames = names(Z)
+        varnames = intersect( Znames, varnames )
+        Z = Z[ , varnames]
         return (Z)
       }
 
@@ -739,7 +753,7 @@
         }
         Z = bathymetry.db( p=pn, DS="complete"  )
         Z = filter.bathymetry( DS=domain, Z=Z )
-              
+
         outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated",
           paste( domain, "baseline.interpolated.rdata" , sep=".") )
 

@@ -19,7 +19,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
     p1 = spatial_parameters( type="canada.east.superhighres" )
     depths = sort( unique(c(depths, notfound) ))
     
-    Z = bathymetry.db( p=p1, DS="complete" )[ , c("plon", "plat", "z")]
+    Z = bathymetry.db( p=p1, DS="baseline", varnames=c("plon", "plat", "z") )
     Zi = as.matrix( round( cbind( 
       ( Z$plon-p1$plons[1])/p1$pres + 1, (Z$plat-p1$plats[1])/p1$pres + 1
     ))) 
