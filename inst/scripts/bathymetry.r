@@ -26,13 +26,9 @@ p$storage.backend="bigmemory.ram"
 p = bio.bathymetry::bathymetry.parameters( p=p, DS="lbm" )
 # p$clusters = rep("localhost",  detectCores() )
 
-
-p = lbm( p=p, DATA='bathymetry.db( p=p, DS="lbm.inputs" )' )   
-if (restarting) {
-  lbm_db(p=p, DS="statistics.status.reset" )
-  p = lbm( p=p, continue=TRUE ) 
-}
-
+DATA='bathymetry.db( p=p, DS="lbm.inputs" )'
+p = lbm( p=p, tasks=c("initiate"), DATA=DATA )
+p = lbm( p=p, tasks=c( "stage1", "stage2", "stage3" ) )
 
 # bring together stats and predictions and any other required computations: slope and curvature
 bathymetry.db( p=p, DS="lbm.finalize.redo" ) 
@@ -66,15 +62,15 @@ if( bathyclines.redo ) {
   # note these polygons are created at the resolution specified in p$spatial.domain ..
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
   # For lower one specify an appropriate p$spatial.domain
-  p = bio.bathymetry::bathymetry.parameters() # reset to defaults
-  options(max.contour.segments=100000)
+  p = bio.bathymetry::bathymetry.parameters(resolution="canada.east") # reset to lower resolution 
+  options(max.contour.segments=100000) # required if superhighres is being used
   plygn = isobath.db( p=p, DS="isobath.redo", depths=depths  )
 }
 
 
 ### -----------------------------------------------------------------
-p = bio.bathymetry::bathymetry.parameters() # reset to defaults
-
+p = bio.bathymetry::bathymetry.parameters(resolution="canada.east") # reset to lower resolution 
+  
 plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 
 coast = coastline.db( xlim=c(-68,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
