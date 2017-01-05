@@ -47,8 +47,6 @@ bathymetry.db( p=p, DS="lbm.finalize.redo" )
 p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", 
                   "SSE", "SSE.mpa" , "snowcrab")
 bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions
-
-
 bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filtering of areas and or depth to reduce file size, in planar coords only
 
 
@@ -75,6 +73,8 @@ if( bathyclines.redo ) {
 
 ### -----------------------------------------------------------------
 p = bio.bathymetry::bathymetry.parameters() # reset to defaults
+options(max.contour.segments=50000)
+
 plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 
 coast = coastline.db( xlim=c(-68,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap

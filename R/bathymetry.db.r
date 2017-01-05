@@ -643,8 +643,7 @@
 
       }
 
-      Z = list()
-
+ 
       p0 = p  # the originating parameters
       Z0 = bathymetry.db( p=p0, DS="lbm.finalize" )
       coordinates( Z0 ) = ~ plon + plat
@@ -654,10 +653,11 @@
 
       for (gr in grids ) {
         print(gr)
+        Z = list()
         p1 = spatial_parameters( type=gr )
         for (vn in names(Z0)) {
           Z[[vn]] = raster::projectRaster(
-            from = raster::rasterize( Z0, bio.spacetime::spatial_parameters_to_raster(p0), field=vn, fun=mean),
+            from = raster::rasterize( Z0, bio.spacetime::spatial_parameters_to_raster(p0), field=vn, fun=mean, na.rm=TRUE, mask=TRUE ),
             to   = bio.spacetime::spatial_parameters_to_raster( p1) )
         }
         Z = as( brick(Z), "SpatialPointsDataFrame" )
