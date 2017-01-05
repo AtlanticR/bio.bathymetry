@@ -46,7 +46,7 @@ bathymetry.db( p=p, DS="lbm.finalize.redo" )
   # this requires "raster" (it is possible to use fields and be a bit faster but this is simpler for now .. do  not forget to take care of the different projections)
 p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", 
                   "SSE", "SSE.mpa" , "snowcrab")
-bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions
+bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions 6 hrs ..
 bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filtering of areas and or depth to reduce file size, in planar coords only
 
 
@@ -67,13 +67,13 @@ if( bathyclines.redo ) {
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
   # For lower one specify an appropriate p$spatial.domain
   p = bio.bathymetry::bathymetry.parameters() # reset to defaults
+  options(max.contour.segments=100000)
   plygn = isobath.db( p=p, DS="isobath.redo", depths=depths  )
 }
 
 
 ### -----------------------------------------------------------------
 p = bio.bathymetry::bathymetry.parameters() # reset to defaults
-options(max.contour.segments=50000)
 
 plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 
