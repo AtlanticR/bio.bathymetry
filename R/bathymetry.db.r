@@ -470,35 +470,35 @@
     # ------------
 
   
-    if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) {
-      #\\ DS="lookuptable.sse.snowcrab(.redo)" creates/returns a lookuptable for SSE -> snowcrab domains
-      #\\   both share the same initial domains + resolutions and so it is faster to operate upon the indices
-      fn = file.path( project.datadirectory("bio.bathymetry"), "interpolated", "sse.snowcrab.lookup.rdata")
-      if (DS== "lookuptable.sse.snowcrab" ) {
-        if (file.exists(fn)) load(fn)
-        return(id)
-      }
-      zSSE = bathymetry.db ( p=spatial_parameters( type="SSE" ), DS="baseline" )
-      zSSE$id.sse = 1:nrow(zSSE)
+    # if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) {
+    #   #\\ DS="lookuptable.sse.snowcrab(.redo)" creates/returns a lookuptable for SSE -> snowcrab domains
+    #   #\\   both share the same initial domains + resolutions and so it is faster to operate upon the indices
+    #   fn = file.path( project.datadirectory("bio.bathymetry"), "interpolated", "sse.snowcrab.lookup.rdata")
+    #   if (DS== "lookuptable.sse.snowcrab" ) {
+    #     if (file.exists(fn)) load(fn)
+    #     return(id)
+    #   }
+    #   zSSE = bathymetry.db ( p=spatial_parameters( type="SSE" ), DS="baseline" )
+    #   zSSE$id.sse = 1:nrow(zSSE)
 
-      zsc  = bathymetry.db ( p=spatial_parameters( type="snowcrab" ), DS="baseline" )
-      zsc$id.sc = 1:nrow(zsc)
+    #   zsc  = bathymetry.db ( p=spatial_parameters( type="snowcrab" ), DS="baseline" )
+    #   zsc$id.sc = 1:nrow(zsc)
 
-      z = merge( zSSE, zsc, by =c("plon", "plat"), all.x=T, all.y=T, sort=F )
-      ii = which(is.finite(z$id.sc ) & is.finite(z$id.sse )  )
-      if (length(ii) != nrow(zsc) ) stop("Error in sse-snowcrab lookup table size")
-      id = sort( z$id.sse[ ii] )
-      # oo= zSSE[id,]
+    #   z = merge( zSSE, zsc, by =c("plon", "plat"), all.x=T, all.y=T, sort=F )
+    #   ii = which(is.finite(z$id.sc ) & is.finite(z$id.sse )  )
+    #   if (length(ii) != nrow(zsc) ) stop("Error in sse-snowcrab lookup table size")
+    #   id = sort( z$id.sse[ ii] )
+    #   # oo= zSSE[id,]
 
-      save( id, file=fn, compress=T )
-      return(fn)
-    }
+    #   save( id, file=fn, compress=T )
+    #   return(fn)
+    # }
 
     # ----------------
 
     if ( DS %in% c("lbm.inputs", "lbm.inputs.redo" )) {
 
-      fn = file.path( datadir, paste( "bathymetry", "lbm.inputs", "rdata", sep=".") )
+      fn = file.path( datadir, "lbm", paste( "bathymetry", "lbm.inputs", "rdata", sep=".") )
       if (DS =="lbm.inputs" ) {
         load( fn)
         return( hm )
@@ -548,7 +548,7 @@
     if ( DS %in% c("lbm.finalize.redo", "lbm.finalize" )) {
       #// bathymetry( p, DS="lbm.finalize(.redo)" return/create the
       #//   lbm interpolated method formatted and finalised for production use
-      fn = file.path(  project.datadirectory("bio.bathymetry"), "interpolated",
+      fn = file.path(  project.datadirectory("bio.bathymetry"), "lbm",
         paste( "bathymetry", "lbm", "finalized", p$spatial.domain, "rdata", sep=".") )
       if (DS =="lbm.finalize" ) {
         B = NULL
@@ -729,10 +729,10 @@
 
       for (domain in p$new.grids) {
         pn = spatial_parameters( type=domain )
-        if ( pn$spatial.domain == "snowcrab" ) {
-          # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
-          pn = spatial_parameters( type="SSE", p=pn ) 
-        }
+        # if ( pn$spatial.domain == "snowcrab" ) {
+        #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
+        #   pn = spatial_parameters( type="SSE", p=pn ) 
+        # }
         Z = bathymetry.db( p=pn, DS="complete"  )
         Z = filter.bathymetry( DS=domain, Z=Z )
 

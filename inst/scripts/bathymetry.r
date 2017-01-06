@@ -27,8 +27,9 @@ p = bio.bathymetry::bathymetry.parameters( p=p, DS="lbm" )
 # p$clusters = rep("localhost",  detectCores() )
 
 DATA='bathymetry.db( p=p, DS="lbm.inputs" )'
-p = lbm( p=p, tasks=c("initiate"), DATA=DATA )
+p = lbm( p=p, tasks=c( "initiate" ), DATA=DATA )
 p = lbm( p=p, tasks=c( "stage1", "stage2", "stage3" ) )
+p = lbm( p=p, tasks=c( "save" ) )
 
 # bring together stats and predictions and any other required computations: slope and curvature
 bathymetry.db( p=p, DS="lbm.finalize.redo" ) 
@@ -45,12 +46,6 @@ p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east
 bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions 6 hrs ..
 bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filtering of areas and or depth to reduce file size, in planar coords only
 
-
-# "snowcrab" subsets do exist but are simple subsets of SSE
-# so only the lookuptable below is all that is important as far as bathymetry is concerned
-# both share the same initial domains + resolutions
-p = bio.bathymetry::bathymetry.parameters(resolution="snowcrab") # reset defaults to snowcrab
-bathymetry.db( p=p, DS="lookuptable.sse.snowcrab.redo" ) # indices to map SSE to snowcrab
 
 
 ### -----------------------------------------------------------------
