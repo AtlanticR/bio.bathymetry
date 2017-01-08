@@ -10,8 +10,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
       "geosphere", "sp", "raster", "colorspace", "splancs" ) ) )
  
     if (!exists("project.root", p) )  p$project.root = project.datadirectory( p$project.name )
-    if (!exists("spatial.domain.default", p)) p$spatial.domain.default = "canada.east.superhighres"
-    if (is.null( resolution )) resolution=p$spatial.domain.default
+    if (!exists("spatial.domain", p)) p$spatial.domain = "canada.east.superhighres"
+    if (is.null( resolution )) resolution=p$spatial.domain
     p = spatial_parameters(p=p, type=resolution )  # default (= only supported resolution of 0.2 km discretization)  .. do NOT change
     return(p)
   }

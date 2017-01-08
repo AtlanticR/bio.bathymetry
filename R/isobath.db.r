@@ -20,10 +20,9 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
     depths = sort( unique(c(depths, notfound) ))
     
     Z = bathymetry.db( p=p1, DS="complete", varnames=c("plon", "plat", "z") )
-    Zi = as.matrix( round( cbind( 
-      ( Z$plon-p1$plons[1])/p1$pres + 1, (Z$plat-p1$plats[1])/p1$pres + 1
-    ))) 
-    
+    Zi = array_map( "xy->2", Z[, c("plon", "plat")], 
+      corner=c(p1$plons[1], p1$plats[1]), res=c(p1$pres, p1$pres) )
+
     Zm = matrix( NA, ncol=p1$nplats, nrow=p1$nplons )
     Zm[Zi] = Z$z
     rm(Z); gc()

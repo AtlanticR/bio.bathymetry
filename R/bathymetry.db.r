@@ -279,223 +279,6 @@
 
 
 
-
-		if ( DS %in% c( "Z.redo", "Z.lonlat", "Z.lonlat.grid", "Z.planar", "Z.planar.grid" ) ) {
-
-			outdir = project.datadirectory("bio.bathymetry", "interpolated" )
-			dir.create( outdir, showWarnings=F, recursive=T )
-
-			fn.lonlat = file.path( outdir, paste( p$spatial.domain, "Z.interpolated.lonlat.rdata", sep=".") )
-      fn.lonlat.grid = file.path( outdir, paste( p$spatial.domain, "Z.interpolated.lonlat.grid.rdata", sep=".") )
-      fn.planar = file.path( outdir, paste(p$spatial.domain, "Z.interpolated.planar.rdata", sep=".") )
-      fn.planar.grid = file.path( outdir, paste(p$spatial.domain, "Z.interpolated.planar.grid.rdata", sep=".") )
-
-      if ( DS == "Z.lonlat" ) {
-        load( fn.lonlat )
-        return( Z )
-      }
-      if ( DS == "Z.lonlat.grid" ) {   # not used ... drop?
-        load( fn.lonlat.grid )
-        return( Z )
-      }
-      if ( DS == "Z.planar" ) {
-        load( fn.planar )
-        return( Z )
-      }
-      if ( DS == "Z.planar.grid" ) {    # used by map.substrate
-        load( fn.planar.grid )
-        return( Z )
-      }
-
-      Z0 = Z = bathymetry.db( p, DS="Z.gridded" )
-      Z$lon = grid.internal( Z$lon, p$lons )
-      Z$lat = grid.internal( Z$lat, p$lats )
-      Z = block.spatial ( xyz=Z, function.block=block.mean )
-
-      # create Z in lonlat xyz dataframe format
-      save(Z, file=fn.lonlat, compress=T)
-
-      # create Z in lonlat grid/matrix format
-      Z = xyz2grid(Z, p$lons, p$lats)  # using R
-      save(Z, file=fn.lonlat.grid, compress=T) # matrix/grid format
-
-      # ---- convert to planar coords ...
-      # must use the interpolated grid to get even higher resolution "data" with extrapolation on edges
-      Z = lonlat2planar( Z0, proj.type= p$internal.projection )
-      Z = Z[, c("plon", "plat", "z")]
-      Z$plon = grid.internal( Z$plon, p$plons )
-      Z$plat = grid.internal( Z$plat, p$plats )
-
-      gc()
-      Z = block.spatial ( xyz=Z, function.block=block.mean )
-
-      # create Z in planar xyz format
-      save( Z, file=fn.planar, compress=T )
-
-      # create Z in matrix/grid format
-      gc()
-      Z = xyz2grid( Z, p$plons, p$plats)
-      save( Z, file=fn.planar.grid, compress=T )
-
-      return ("interpolated depths completed")
-
-		}
-
-		if ( DS %in% c( "dZ.redo", "dZ.lonlat", "dZ.lonlat.grid", "dZ.planar", "dZ.planar.grid" ) ) {
-
-			outdir = file.path( project.datadirectory("bio.bathymetry"), "interpolated" )
-			dir.create( outdir, showWarnings=F, recursive=T )
-
-      fn.lonlat = file.path( outdir, paste( p$spatial.domain, "dZ.interpolated.lonlat.rdata", sep=".")  )
-      fn.lonlat.grid = file.path( outdir, paste( p$spatial.domain, "dZ.interpolated.lonlat.grid.rdata", sep=".")  )
-      fn.planar = file.path( outdir, paste( p$spatial.domain, "dZ.interpolated.planar.rdata", sep=".")  )
-      fn.planar.grid = file.path( outdir, paste( p$spatial.domain, "dZ.interpolated.planar.grid.rdata", sep=".")  )
-
-      if ( DS == "dZ.lonlat" ) {
-        load( fn.lonlat )
-        return( dZ )
-      }
-      if ( DS == "dZ.lonlat.grid" ) {
-        load( fn.lonlat.grid )
-        return( dZ )
-      }
-      if ( DS == "dZ.planar" ) {
-        load( fn.planar )
-        return( dZ )
-      }
-      if ( DS == "dZ.planar.grid" ) {
-        load( fn.planar.grid )
-        return( dZ )
-      }
-
-      dZ0 = bathymetry.db( p, DS="dZ.gridded" )
-      dZ0$dZ = log( abs( dZ0$dZ ) )
-
-      dZ = dZ0
-      dZ$lon = grid.internal( dZ$lon, p$lons )
-      dZ$lat = grid.internal( dZ$lat, p$lats )
-      dZ = block.spatial ( xyz=dZ, function.block=block.mean )
-
-      # create dZ in lonlat xyz dataframe format
-      save(dZ, file=fn.lonlat, compress=T)
-
-      # create dZ in lonlat grid/matrix format
-      dZ = xyz2grid(dZ, p$lons, p$lats)
-      save(dZ, file=fn.lonlat.grid, compress=T) # matrix/grid format
-
-
-      # ---- convert to planar coords ...
-      # must use the interpolated grid to get even higher resolution "data" with extrpolation on edges
-      dZ = lonlat2planar( dZ0, proj.type= p$internal.projection )  # utm20, WGS84 (snowcrab geoid)
-      dZ = dZ[, c("plon", "plat", "dZ")]
-      dZ$plon = grid.internal( dZ$plon, p$plons )
-      dZ$plat = grid.internal( dZ$plat, p$plats )
-
-      gc()
-      dZ = block.spatial ( xyz=dZ, function.block=block.mean )
-
-      # create dZ in planar xyz format
-      save( dZ, file=fn.planar, compress=T )
-
-      # create dZ in matrix/grid format
-      gc()
-      dZ = xyz2grid( dZ, p$plons, p$plats)
-      save( dZ, file=fn.planar.grid, compress=T )
-
-      return ("interpolated files complete, load via another call for the saved files")
-    }
-
-    if ( DS %in% c( "ddZ.redo", "ddZ.lonlat", "ddZ.planar", "ddZ.lonlat.grid", "ddZ.planar.grid"  ) ) {
-     	outdir = file.path( project.datadirectory("bio.bathymetry"), "interpolated" )
-			dir.create( outdir, showWarnings=F, recursive=T )
-
-      fn.lonlat = file.path( outdir,  paste( p$spatial.domain, "ddZ.interpolated.lonlat.rdata", sep=".")  )
-      fn.lonlat.grid = file.path( outdir,  paste( p$spatial.domain, "ddZ.interpolated.lonlat.grid.rdata", sep=".")  )
-      fn.planar = file.path( outdir,  paste( p$spatial.domain, "ddZ.interpolated.planar.rdata", sep=".")  )
-      fn.planar.grid = file.path( outdir,  paste( p$spatial.domain, "ddZ.interpolated.planar.grid.rdata", sep=".") )
-
-      if ( DS == "ddZ.lonlat" ) {
-        load( fn.lonlat )
-        return( ddZ )
-      }
-      if ( DS == "ddZ.lonlat.grid" ) {
-        load( fn.lonlat.grid )
-        return( ddZ )
-      }
-      if ( DS == "ddZ.planar" ) {
-        load( fn.planar )
-        return( ddZ )
-      }
-      if ( DS == "ddZ.planar.grid" ) {
-        load( fn.planar.grid )
-        return( ddZ )
-      }
-
-      ddZ0 = bathymetry.db( p, DS="ddZ.gridded" )
-      ddZ0$ddZ = log( abs( ddZ0$ddZ ) )
-
-      # ----- convert to lonlats blocked
-      ddZ = ddZ0
-      ddZ$lon = grid.internal( ddZ$lon, p$lons )
-      ddZ$lat = grid.internal( ddZ$lat, p$lats )
-      ddZ = block.spatial ( xyz=ddZ, function.block=block.mean )
-
-      # lonlat xyz dataframe format
-      save(ddZ, file=fn.lonlat, compress=T)
-
-      ddZ = xyz2grid(ddZ, p$lons, p$lats)
-      save(ddZ, file=fn.lonlat.grid, compress=T) # matrix/grid format
-
-      # ---- convert to planar coords ...
-      # must use the interpolated grid to get even higher resolution "data" with extrpolation on edges
-      ddZ = ddZ0
-      ddZ = lonlat2planar( ddZ0, proj.type= p$internal.projection )  # utm20, WGS84 (snowcrab geoid)
-      ddZ = ddZ[, c("plon", "plat", "ddZ")]
-      gc()
-      ddZ$plon = grid.internal( ddZ$plon, p$plons )
-      ddZ$plat = grid.internal( ddZ$plat, p$plats )
-
-      ddZ = block.spatial ( xyz=ddZ, function.block=block.mean )
-
-      # create ddZ in planar xyz format
-      save( ddZ, file=fn.planar, compress=T )
-
-      gc()
-      ddZ = xyz2grid(ddZ, p$plons, p$plats)
-      save( ddZ, file=fn.planar.grid, compress=T )
-
-      return ("interpolated files complete, load via another call for the saved files")
-    }
-
-    # ------------
-
-  
-    # if (DS %in% c("lookuptable.sse.snowcrab.redo", "lookuptable.sse.snowcrab" )) {
-    #   #\\ DS="lookuptable.sse.snowcrab(.redo)" creates/returns a lookuptable for SSE -> snowcrab domains
-    #   #\\   both share the same initial domains + resolutions and so it is faster to operate upon the indices
-    #   fn = file.path( project.datadirectory("bio.bathymetry"), "interpolated", "sse.snowcrab.lookup.rdata")
-    #   if (DS== "lookuptable.sse.snowcrab" ) {
-    #     if (file.exists(fn)) load(fn)
-    #     return(id)
-    #   }
-    #   zSSE = bathymetry.db ( p=spatial_parameters( type="SSE" ), DS="baseline" )
-    #   zSSE$id.sse = 1:nrow(zSSE)
-
-    #   zsc  = bathymetry.db ( p=spatial_parameters( type="snowcrab" ), DS="baseline" )
-    #   zsc$id.sc = 1:nrow(zsc)
-
-    #   z = merge( zSSE, zsc, by =c("plon", "plat"), all.x=T, all.y=T, sort=F )
-    #   ii = which(is.finite(z$id.sc ) & is.finite(z$id.sse )  )
-    #   if (length(ii) != nrow(zsc) ) stop("Error in sse-snowcrab lookup table size")
-    #   id = sort( z$id.sse[ ii] )
-    #   # oo= zSSE[id,]
-
-    #   save( id, file=fn, compress=T )
-    #   return(fn)
-    # }
-
-    # ----------------
-
     if ( DS %in% c("lbm.inputs", "lbm.inputs.redo" )) {
 
       fn = file.path( datadir, "lbm", paste( "bathymetry", "lbm.inputs", "rdata", sep=".") )
@@ -647,11 +430,8 @@
       p0 = p  # the originating parameters
      
       Z0 = bathymetry.db( p=p0, DS="lbm.finalize" )
-      Z0i = as.matrix( round( cbind( 
-        ( Z0$plon-p0$plons[1])/p0$pres + 1, (Z0$plat-p0$plats[1])/p0$pres + 1
-      ) ) ) 
-      # Z0 = planar2lonlat( Z0, proj.type=p0$internal.crs )
-   
+      Z0i = array_map( "xy->2", Z0[, c("plon", "plat")], 
+        corner=c(p0$plons[1], p0$plats[1]), res=c(p0$pres, p0$pres) )
 
       varnames = setdiff( names(Z0), c("plon","plat", "lon", "lat") )  
       #using fields
@@ -665,9 +445,8 @@
         if ( p0$spatial.domain != p1$spatial.domain ) {
 
           Z = expand.grid( plon=p1$plons, plat=p1$plats, KEEP.OUT.ATTRS=FALSE )
-          Zi = as.matrix( round( cbind( 
-            ( Z$plon-p1$plons[1])/p1$pres + 1, (Z$plat-p1$plats[1])/p1$pres + 1
-          ) ) ) 
+          Zi = array_map( "xy->2", Z[, c("plon", "plat")], 
+            corner=c(p1$plons[1], p1$plats[1]), res=c(p1$pres, p1$pres) )
      
           Z = planar2lonlat( Z, proj.type=p1$internal.crs )
           Z$plon_1 = Z$plon # store original coords

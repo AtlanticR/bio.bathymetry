@@ -16,8 +16,8 @@ if ( basedata.redo ) {
 # Total at "superhighres": 30GB --~3.5 GB/process and 4 GB in parent for fft; gam method requires more ~ 2X
 # boundary def takes too long .. too much data to process -- skip
 # "highres": ~ 20 hr with 8, 3.2 Ghz cpus on thoth using fft method jc: 2016 or ~ 6 hr on hyperion
-# "superhighres": ~ 40hr with 8 cpu on thoth
-# "superhighres": ~ 60hr with 8 cpu on thoth for "krige" method  
+# "superhighres": ~ 40hr with 8 cpu on thoth for "fft"
+# "superhighres": ~ 61hr with 8 cpu on thoth for "krige" method  
 #   -- looks to be the best in performance/quality; req ~5 GB per process req
 
 p = bio.bathymetry::bathymetry.parameters() # reset to defaults
