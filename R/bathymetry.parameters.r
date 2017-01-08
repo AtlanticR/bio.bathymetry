@@ -29,7 +29,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     p$lbm_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$lbm_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
     
-    p$lbm_rsquared_threshold = 0.1 # lower threshold
+    p$lbm_rsquared_threshold = 0.5 # lower threshold
     p$lbm_distance_prediction = 7.5 # this is a half window km
     p$lbm_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$lbm_distance_scale = 25 # km ... approx guess of 95% AC range 
@@ -37,8 +37,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     p$lbm_distance_max = 50 # never go beyond the min and max range ( cpu/ram and time consideration are part of it but mostly what is physically reasonable)
 
     
-    p$n.min = 30 # n.min/n.max changes with resolution
-    p$n.max = 5000 # numerical time/memory constraint -- anything larger takes too much time
+    p$n.min = 50 # n.min/n.max changes with resolution
+    p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
     # other options might work depending upon data density but GP are esp slow .. too slow for bathymetry
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale to try in local block search
  

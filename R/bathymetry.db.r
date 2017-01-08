@@ -297,9 +297,9 @@
       gc()
       
       # if using kernel density/FFT.. might as well take the gird here as it requires  gridded data 
-      B$plon = grid.internal( B$plon, p$plons )
-      B$plat = grid.internal( B$plat, p$plats )
-      B = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
+      # B$plon = grid.internal( B$plon, p$plons )
+      # B$plat = grid.internal( B$plat, p$plats )
+      # B = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
 
 #       B = B[, c("plon", "plat", "z")]
 
@@ -392,8 +392,11 @@
       return(fn)
 
       if (0) {
-        aoi = which( B$z > 5 & B$z < 3000 )
-        levelplot( log(z) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
+        aoi = which( B$z > 10 & B$z < 500 )
+        datarange = log( quantile( B[aoi,"z"], probs=c(0.001, 0.999), na.rm=TRUE ))
+        dr = seq( datarange[1], datarange[2], length.out=100)
+
+       levelplot( log(z) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), at=dr, col.regions=rev(color.code( "seis", dr)) )
         levelplot( log(phi) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
         levelplot( log(range) ~ plon + plat, B[aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
 
