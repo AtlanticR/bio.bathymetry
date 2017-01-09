@@ -412,76 +412,46 @@
       Z = NULL
 
       if ( DS %in% c( "complete") ) {
-
-        domain = NULL
-        if ( is.null(domain)) {
-          if ( exists("spatial.domain", p)) {
-            domain = p$spatial.domain
-          } else if ( exists( "new.grids", p) ) { # over-rides p$spatial domain
-            if( length( p$new.grids )== 1 ) {
-              domain = p$new.grids
-        } } }
-
         fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
-          paste( "bathymetry", "complete", domain, "rdata", sep=".") )
+          paste( "bathymetry", "complete", p$spatial.domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
         return( Z )
 
       }
 
-
       p0 = p  # the originating parameters
      
       Z0 = bathymetry.db( p=p0, DS="lbm.finalize" )
-      Z0i = array_map( "xy->2", Z0[, c("plon", "plat")], 
+      L0 = Z0[, c("plon", "plat")]
+      L0i = array_map( "xy->2", L0, 
         corner=c(p0$plons[1], p0$plats[1]), res=c(p0$pres, p0$pres) )
 
       varnames = setdiff( names(Z0), c("plon","plat", "lon", "lat") )  
-      #using fields
+      
       grids = unique( c( p$spatial.domain, p$new.grids ))
 
       for (gr in grids ) {
         print(gr)
-
         p1 = spatial_parameters( type=gr ) #target projection
-           
         if ( p0$spatial.domain != p1$spatial.domain ) {
-
-          Z = expand.grid( plon=p1$plons, plat=p1$plats, KEEP.OUT.ATTRS=FALSE )
-          Zi = array_map( "xy->2", Z[, c("plon", "plat")], 
+          L1 = expand.grid( plon=p1$plons, plat=p1$plats, KEEP.OUT.ATTRS=FALSE )
+          L1i = array_map( "xy->2", L1[, c("plon", "plat")], 
             corner=c(p1$plons[1], p1$plats[1]), res=c(p1$pres, p1$pres) )
-     
-          Z = planar2lonlat( Z, proj.type=p1$internal.crs )
-          Z$plon_1 = Z$plon # store original coords
-          Z$plat_1 = Z$plat
-          Z = lonlat2planar( Z, proj.type=p0$internal.crs )
-          p1_wgts = fields::setup.image.smooth( 
+          L1 = planar2lonlat( L1, proj.type=p1$internal.crs )
+          Z = L1
+          L1$plon_1 = L1$plon # store original coords
+          L1$plat_1 = L1$plat
+          L1 = lonlat2planar( L1, proj.type=p0$internal.crs )
+          p1$wght = fields::setup.image.smooth( 
             nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres,
             theta=p1$pres, xwidth=4*p1$pres, ywidth=4*p1$pres )
-           
           for (vn in varnames) {
-            M = matrix(NA, nrow=p0$nplons, ncol=p0$nplats )
-            M[Z0i] = Z0[[vn]]
-            Znew = fields::interp.surface( list(x=p0$plons, y=p0$plats, z=M), loc=Z[, c("plon", "plat")] ) #linear interpolation
-            Z[[vn]] = c(Znew)
-            ii = which( !is.finite( Z[[vn]] ) )
-            if ( length( ii) > 0 ) {
-              MM = matrix(NA, nrow=p1$nplons, ncol=p1$nplats )
-              MM[Zi] = Z[[vn]]
-              Znew = fields::image.smooth( MM, dx=p1$pres, dy=p1$pres, wght=p1_wgts )
-              Zii = fields::interp.surface( list(x=p1$plons, y=p1$plats, z=Znew$z), loc=Z[, c("plon_1", "plat_1")] ) #linear interpolation
-              Z[[vn]][ii] = Zii[ii]
-            }
+            Z[[vn]] = spatial_warp( Z0[,vn], L0, L1, p0, p1, L0i, L1i )
           }
-          Z$plon = Z$plon_1
-          Z$plat = Z$plat_1
-        
         } else {
           Z = Z0
         }
-
-        Z$plon_1 = Z$plat_1 = Z$lon = Z$lat = NULL
-
+        Z$lon = Z$lat = NULL
         fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
           paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
         save (Z, file=fn, compress=TRUE)
