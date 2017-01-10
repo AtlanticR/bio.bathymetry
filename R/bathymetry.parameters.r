@@ -13,7 +13,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     if (!exists("spatial.domain", p)) p$spatial.domain = "canada.east.superhighres"
     if (is.null( resolution )) resolution=p$spatial.domain
     p = spatial_parameters(p=p, type=resolution )  # default (= only supported resolution of 0.2 km discretization)  .. do NOT change
-    p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", 
+    p$spatial.domain.subareas = c( "canada.east.superhighres", "canada.east.highres", "canada.east", 
                   "SSE", "SSE.mpa" , "snowcrab")
     return(p)
   }

@@ -397,7 +397,7 @@
         corner=c(p0$plons[1], p0$plats[1]), res=c(p0$pres, p0$pres) )
 
       varnames = setdiff( names(Z0), c("plon","plat", "lon", "lat") )  
-      grids = setdiff( unique( p0$new.grids ), p0$spatial.domain )
+      grids = setdiff( unique( p0$spatial.domain.subareas ), p0$spatial.domain )
 
       for (gr in grids ) {
         print(gr)
@@ -465,7 +465,7 @@
         return (Z)
       }
 
-      for (domain in p$new.grids) {
+      for (domain in p$spatial.domain.subareas) {
         pn = spatial_parameters( type=domain )
         # if ( pn$spatial.domain == "snowcrab" ) {
         #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
