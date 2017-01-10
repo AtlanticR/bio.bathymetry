@@ -278,10 +278,9 @@
     }
 
 
-
     if ( DS %in% c("lbm.inputs", "lbm.inputs.redo" )) {
       
-      fn = file.path( project.datadirectory("bio.bathymetry"), "lbm", paste( "bathymetry", "lbm.inputs", "rdata", sep=".") )
+      fn = file.path( project.datadirectory("bio.bathymetry"), "modelled", paste( "bathymetry", "lbm.inputs", "rdata", sep=".") )
       if (DS =="lbm.inputs" ) {
         load( fn)
         return( hm )
@@ -333,7 +332,7 @@
 
       if ( DS %in% c( "complete") ) {
         Z = NULL
-        fn = file.path( project.datadirectory("bio.bathymetry", "lbm"),
+        fn = file.path( project.datadirectory("bio.bathymetry", "modelled"),
           paste( "bathymetry", "complete", p$spatial.domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
         return( Z )
@@ -418,7 +417,7 @@
             Z[[vn]] = spatial_warp( Z0[,vn], L0, L1, p0, p1, L0i, L1i )
           }
         Z = Z[ , names(Z0) ]
-        fn = file.path( project.datadirectory("bio.bathymetry", "lbm"),
+        fn = file.path( project.datadirectory("bio.bathymetry", "modelled"),
           paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
         save (Z, file=fn, compress=TRUE)
       }
@@ -455,7 +454,7 @@
       # form prediction surface in planar coords over the ocean
 
       if ( DS=="baseline" ) {
-        outfile =  file.path( project.datadirectory("bio.bathymetry"), "lbm",
+        outfile =  file.path( project.datadirectory("bio.bathymetry"), "modelled",
           paste( "bathymetry", "baseline", p$spatial.domain, "rdata" , sep=".") )
         Z = NULL
         load( outfile )
@@ -475,7 +474,7 @@
         Z = bathymetry.db( p=pn, DS="complete"  )
         Z = filter.bathymetry( DS=domain, Z=Z )
  
-        outfile =  file.path( project.datadirectory("bio.bathymetry"), "lbm",
+        outfile =  file.path( project.datadirectory("bio.bathymetry"), "modelled",
           paste( "bathymetry", "baseline", domain, "rdata" , sep=".") )
  
         save (Z, file=outfile, compress=T )
