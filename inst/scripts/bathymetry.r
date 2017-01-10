@@ -32,15 +32,9 @@ p = lbm( p=p, tasks=c( "stage1", "stage2", "stage3" ) )
 p = lbm( p=p, tasks=c( "save" ) )
 
 # bring together stats and predictions and any other required computations: slope and curvature
-bathymetry.db( p=p, DS="lbm.finalize.redo" ) 
-# B = bathymetry( p=p, DS="lbm.finalize" )     # to see the assimilated data:
-
-
-# as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
-# if you want more, will need to add to the list and modify the selection criteria
+# and then regrid/warp as the interpolation process is so expensive, regrid/upscale/downscale based off the above run
 # .. still uses about 30-40 GB as the base layer is "superhighres" .. 
 # if parallelizing .. use different servers than local nodes
-  # this requires "raster" (it is possible to use fields and be a bit faster but this is simpler for now .. do  not forget to take care of the different projections)
 p$new.grids = c( "canada.east.superhighres", "canada.east.highres", "canada.east", 
                   "SSE", "SSE.mpa" , "snowcrab")
 bathymetry.db( p=p, DS="complete.redo" ) # finalise at diff resolutions 6 hrs ..
