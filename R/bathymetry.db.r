@@ -328,15 +328,15 @@
 
     #-------------------------
 
-    if ( DS %in% c("lbm.finalize.redo", "lbm.finalize" )) {
-      #// bathymetry( p, DS="lbm.finalize(.redo)" return/create the
-      #//   lbm interpolated method formatted and finalised for production use
-      fn = file.path(  project.datadirectory("bio.bathymetry"), "lbm",
-        paste( "bathymetry", "lbm", "finalized", p$spatial.domain, "rdata", sep=".") )
-      if (DS =="lbm.finalize" ) {
-        B = NULL
+    if ( DS %in% c("complete", "complete.redo" )) {
+      #// merge all lbm results and compute stats and warp to different grids
+
+      if ( DS %in% c( "complete") ) {
+        Z = NULL
+        fn = file.path( project.datadirectory("bio.bathymetry", "lbm"),
+          paste( "bathymetry", "complete", p$spatial.domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
-        return( B )
+        return( Z )
       }
 
       nr = p$nplons
@@ -344,51 +344,85 @@
 
       # data prediction grid
       B = expand.grid( plon=p$plons, plat=p$plats, KEEP.OUT.ATTRS=FALSE) 
-
       Bmean = lbm_db( p=p, DS="lbm.prediction", ret="mean" )
       Bsd = lbm_db( p=p, DS="lbm.prediction", ret="sd" )
-      B = cbind(B, Bmean, Bsd)
-      rm (Bmean, Bsd); gc()
-      names(B) = c( "plon", "plat", "z", "z.sd") # really Z.mean but for historical compatibility "z"
+      Z = cbind(B, Bmean, Bsd)
+      names(Z) = c( "plon", "plat", "z", "z.sd") # really Z.mean but for historical compatibility "z"
+      B = Bmean = Bsd NULL
 
       # # remove land
       # oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
-      # B$z[oc] = NA
-      # B$z.sd[oc] = NA
+      # Z$z[oc] = NA
+      # Z$z.sd[oc] = NA
 
-      Bmn = matrix( data=B$z, nrow=nr, ncol=nc )  # means
+      Zmn = matrix( data=Z$z, nrow=nr, ncol=nc )  # means
 
       # first order central differences but the central term drops out:
-      # diffr = ( ( Bmn[ 1:(nr-2), ] - Bmn[ 2:(nr-1), ] ) + ( Bmn[ 2:(nr-1), ] - Bmn[ 3:nr, ] ) ) / 2
-      # diffc = ( ( Bmn[ ,1:(nc-2) ] - Bmn[ ,2:(nc-1) ] ) + ( Bmn[ ,2:(nc-1) ] - Bmn[ ,3:nc ] ) ) / 2
-      diffr =  Bmn[ 1:(nr-2), ] - Bmn[ 3:nr, ]
-      diffc =  Bmn[ ,1:(nc-2) ] - Bmn[ ,3:nc ]
-      rm (Bmn); gc()
+      # diffr = ( ( Zmn[ 1:(nr-2), ] - Zmn[ 2:(nr-1), ] ) + ( Zmn[ 2:(nr-1), ] - Zmn[ 3:nr, ] ) ) / 2
+      # diffc = ( ( Zmn[ ,1:(nc-2) ] - Zmn[ ,2:(nc-1) ] ) + ( Zmn[ ,2:(nc-1) ] - Zmn[ ,3:nc ] ) ) / 2
+      diffr =  Zmn[ 1:(nr-2), ] - Zmn[ 3:nr, ]
+      diffc =  Zmn[ ,1:(nc-2) ] - Zmn[ ,3:nc ]
+      rm (Zmn); gc()
 
       dZ = ( diffr[ ,2:(nc-1) ] + diffc[ 2:(nr-1), ] ) / 2
       dZ = rbind( dZ[1,], dZ, dZ[nrow(dZ)] )  # top and last rows are copies .. dummy value to keep dim correct
       dZ = cbind( dZ[,1], dZ, dZ[,ncol(dZ)] )
 
-      B$dZ =  abs(c(dZ))
+      Z$dZ =  abs(c(dZ))
 
       # gradients
       ddiffr =  dZ[ 1:(nr-2), ] - dZ[ 3:nr, ]
       ddiffc =  dZ[ ,1:(nc-2) ] - dZ[ ,3:nc ]
-      rm( dZ ); gc()
+      dZ = diffc = diffr = NULL
 
       ddZ = ( ddiffr[ ,2:(nc-1) ] + ddiffc[ 2:(nr-1), ] ) / 2
       ddZ = rbind( ddZ[1,], ddZ, ddZ[nrow(ddZ)] )  # top and last rows are copies .. dummy value to keep dim correct
       ddZ = cbind( ddZ[,1], ddZ, ddZ[,ncol(ddZ)] )
-      B$ddZ = abs(c(ddZ))
+      Z$ddZ = abs(c(ddZ))
 
       # merge into statistics
       BS = lbm_db( p=p, DS="stats.to.prediction.grid" )
-      B = cbind( B, BS )
-      rm (BS); gc()
+      Z = cbind( Z, BS )
+      
+      save( Z, file=fn, compress=TRUE)
 
-      # names(B) = c( names(B), p$statvars )
+      BS = ddZ = ddiffc = ddiffr = NULL
+      gc()
 
-      save( B, file=fn, compress=TRUE)
+      # now warp to the other grids 
+      p0 = p  # the originating parameters
+
+      Z0 = Z  # rename as 'Z' will be overwritten below     
+      L0 = Z0[, c("plon", "plat")]
+      L0i = array_map( "xy->2", L0, 
+        corner=c(p0$plons[1], p0$plats[1]), res=c(p0$pres, p0$pres) )
+
+      varnames = setdiff( names(Z0), c("plon","plat", "lon", "lat") )  
+      grids = setdiff( unique( p0$new.grids ), p0$spatial.domain )
+
+      for (gr in grids ) {
+        print(gr)
+        p1 = spatial_parameters( type=gr ) #target projection
+          L1 = expand.grid( plon=p1$plons, plat=p1$plats, KEEP.OUT.ATTRS=FALSE )
+          L1i = array_map( "xy->2", L1[, c("plon", "plat")], 
+            corner=c(p1$plons[1], p1$plats[1]), res=c(p1$pres, p1$pres) )
+          L1 = planar2lonlat( L1, proj.type=p1$internal.crs )
+          Z = L1
+          L1$plon_1 = L1$plon # store original coords
+          L1$plat_1 = L1$plat
+          L1 = lonlat2planar( L1, proj.type=p0$internal.crs )
+          p1$wght = fields::setup.image.smooth( 
+            nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres,
+            theta=p1$pres, xwidth=4*p1$pres, ywidth=4*p1$pres )
+          for (vn in varnames) {
+            Z[[vn]] = spatial_warp( Z0[,vn], L0, L1, p0, p1, L0i, L1i )
+          }
+        Z = Z[ , names(Z0) ]
+        fn = file.path( project.datadirectory("bio.bathymetry", "lbm"),
+          paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
+        save (Z, file=fn, compress=TRUE)
+      }
+
       return(fn)
 
       if (0) {
@@ -409,54 +443,7 @@
     if ( DS %in% c( "complete", "complete.redo") ) {
       #// everything, including land 
 
-      Z = NULL
-
-      if ( DS %in% c( "complete") ) {
-        fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
-          paste( "bathymetry", "complete", p$spatial.domain, "rdata", sep=".") )
-        if ( file.exists ( fn) ) load( fn)
-        return( Z )
-
-      }
-
-      p0 = p  # the originating parameters
-     
-      Z0 = bathymetry.db( p=p0, DS="lbm.finalize" )
-      L0 = Z0[, c("plon", "plat")]
-      L0i = array_map( "xy->2", L0, 
-        corner=c(p0$plons[1], p0$plats[1]), res=c(p0$pres, p0$pres) )
-
-      varnames = setdiff( names(Z0), c("plon","plat", "lon", "lat") )  
-      
-      grids = unique( c( p$spatial.domain, p$new.grids ))
-
-      for (gr in grids ) {
-        print(gr)
-        p1 = spatial_parameters( type=gr ) #target projection
-        if ( p0$spatial.domain != p1$spatial.domain ) {
-          L1 = expand.grid( plon=p1$plons, plat=p1$plats, KEEP.OUT.ATTRS=FALSE )
-          L1i = array_map( "xy->2", L1[, c("plon", "plat")], 
-            corner=c(p1$plons[1], p1$plats[1]), res=c(p1$pres, p1$pres) )
-          L1 = planar2lonlat( L1, proj.type=p1$internal.crs )
-          Z = L1
-          L1$plon_1 = L1$plon # store original coords
-          L1$plat_1 = L1$plat
-          L1 = lonlat2planar( L1, proj.type=p0$internal.crs )
-          p1$wght = fields::setup.image.smooth( 
-            nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres,
-            theta=p1$pres, xwidth=4*p1$pres, ywidth=4*p1$pres )
-          for (vn in varnames) {
-            Z[[vn]] = spatial_warp( Z0[,vn], L0, L1, p0, p1, L0i, L1i )
-          }
-        } else {
-          Z = Z0
-        }
-        Z$lon = Z$lat = NULL
-        fn = file.path( project.datadirectory("bio.bathymetry", "interpolated"),
-          paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
-        save (Z, file=fn, compress=TRUE)
-      }
-
+   
 
       return ( "Completed subsets" )
     }
@@ -468,8 +455,8 @@
       # form prediction surface in planar coords over the ocean
 
       if ( DS=="baseline" ) {
-        outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated",
-          paste( p$spatial.domain, "baseline.interpolated.rdata" , sep=".") )
+        outfile =  file.path( project.datadirectory("bio.bathymetry"), "lbm",
+          paste( "bathymetry", "baseline", p$spatial.domain, "rdata" , sep=".") )
         Z = NULL
         load( outfile )
         if (is.null(varnames)) varnames =c("plon", "plat")
@@ -487,10 +474,10 @@
         # }
         Z = bathymetry.db( p=pn, DS="complete"  )
         Z = filter.bathymetry( DS=domain, Z=Z )
-
-        outfile =  file.path( project.datadirectory("bio.bathymetry"), "interpolated",
-          paste( domain, "baseline.interpolated.rdata" , sep=".") )
-
+ 
+        outfile =  file.path( project.datadirectory("bio.bathymetry"), "lbm",
+          paste( "bathymetry", "baseline", domain, "rdata" , sep=".") )
+ 
         save (Z, file=outfile, compress=T )
         print( outfile )
       }
