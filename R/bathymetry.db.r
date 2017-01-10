@@ -348,7 +348,7 @@
       Bsd = lbm_db( p=p, DS="lbm.prediction", ret="sd" )
       Z = cbind(B, Bmean, Bsd)
       names(Z) = c( "plon", "plat", "z", "z.sd") # really Z.mean but for historical compatibility "z"
-      B = Bmean = Bsd NULL
+      B = Bmean = Bsd = NULL
 
       # # remove land
       # oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
