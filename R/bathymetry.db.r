@@ -280,8 +280,8 @@
 
 
     if ( DS %in% c("lbm.inputs", "lbm.inputs.redo" )) {
-
-      fn = file.path( datadir, "lbm", paste( "bathymetry", "lbm.inputs", "rdata", sep=".") )
+      
+      fn = file.path( project.datadirectory("bio.bathymetry"), "lbm", paste( "bathymetry", "lbm.inputs", "rdata", sep=".") )
       if (DS =="lbm.inputs" ) {
         load( fn)
         return( hm )
