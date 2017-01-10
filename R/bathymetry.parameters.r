@@ -40,7 +40,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
 
     
     p$n.min = 50 # n.min/n.max changes with resolution
-    p$n.max = 8000 # numerical time/memory constraint -- anything larger takes too much time
+    p$n.max = 6000 # numerical time/memory constraint -- anything larger takes too much time
     # other options might work depending upon data density but GP are esp slow .. too slow for bathymetry
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale to try in local block search
  
