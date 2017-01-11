@@ -381,6 +381,7 @@
 
       # merge into statistics
       BS = lbm_db( p=p, DS="stats.to.prediction.grid" )
+      names(BS) = paste("b", names(BS), sep=".")
       Z = cbind( Z, BS )
       
       save( Z, file=fn, compress=TRUE)
@@ -429,22 +430,11 @@
         datarange = log( quantile( B[aoi,"z"], probs=c(0.001, 0.999), na.rm=TRUE ))
         dr = seq( datarange[1], datarange[2], length.out=100)
 
-       levelplot( log(z) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), at=dr, col.regions=rev(color.code( "seis", dr)) )
+        levelplot( log(z) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE), at=dr, col.regions=rev(color.code( "seis", dr)) )
         levelplot( log(phi) ~ plon + plat, B[ aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
         levelplot( log(range) ~ plon + plat, B[aoi,], aspect="iso", labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE) )
 
       }
-    }
-
-    # ------------
-
-
-    if ( DS %in% c( "complete", "complete.redo") ) {
-      #// everything, including land 
-
-   
-
-      return ( "Completed subsets" )
     }
 
 
@@ -458,9 +448,10 @@
           paste( "bathymetry", "baseline", p$spatial.domain, "rdata" , sep=".") )
         Z = NULL
         load( outfile )
-        if (is.null(varnames)) varnames =c("plon", "plat")
         Znames = names(Z)
-        varnames = intersect( Znames, varnames )
+        if (is.null(varnames)) varnames =c("plon", "plat")  # default is to send locs only .. different reative to all other data streams 
+        varnames = intersect( Znames, varnames )  # send anything that results in no match causes everything to be sent
+        if (length(varnames) == 0) varnames=Znames  # no match .. send all
         Z = Z[ , varnames]
         return (Z)
       }
