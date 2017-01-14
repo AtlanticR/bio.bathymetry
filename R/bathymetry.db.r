@@ -411,7 +411,7 @@
             nrow=p1$nplons, ncol=p1$nplats, dx=p1$pres, dy=p1$pres,
             theta=p1$pres, xwidth=4*p1$pres, ywidth=4*p1$pres )
           for (vn in varnames) {
-            Z[[vn]] = spatial_warp( Z0[,vn], L0, L1, p0, p1, L0i, L1i )
+            Z[,vn] = spatial_warp( Z0[,vn], L0, L1, p0, p1, "fast", L0i, L1i )
           }
         Z = Z[ , names(Z0) ]
         fn = file.path( project.datadirectory("bio.bathymetry", "modelled"),
