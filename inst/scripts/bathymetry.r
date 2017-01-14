@@ -78,7 +78,7 @@ lapply( plygn_aslist[[1]], points, pch="." )
 
 plygn_as_xypoints = coordinates( as( plygn, "SpatialPoints") )# ... etc...
 plot(plygn_as_xypoints, pch=".",  xaxs="i", yaxs="i", axes=TRUE)
-+
+
 
 # a few plots :
 

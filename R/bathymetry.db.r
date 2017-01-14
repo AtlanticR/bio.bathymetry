@@ -294,17 +294,14 @@
       B$lon = NULL
       B$lat = NULL
       gc()
-      
-      # if using kernel density/FFT.. might as well take the gird here as it requires  gridded data 
-      # B$plon = grid.internal( B$plon, p$plons )
-      # B$plat = grid.internal( B$plat, p$plats )
-      # B = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
 
+      # if using kernel density/FFT.. might as well take the gird here as it requires  gridded data 
+      # B$plon = grid.internal( B$plon, plons )
+      # B$plat = grid.internal( B$plat, plats )
+      # B = block.spatial ( xyz=B[,c("plon", "plat", "z")], function.block=block.mean )
 #       B = B[, c("plon", "plat", "z")]
 
-      BP = list( LOCS = expand.grid( p$plons, p$plats, KEEP.OUT.ATTRS=FALSE) )
-      names( BP$LOCS ) = c("plon", "plat")
-
+      BP = list( LOCS = spatial_grid(p) )
       hm = list( input=B, output=BP )
       save( hm, file=fn, compress=TRUE)
     }
@@ -313,8 +310,7 @@
 
     if ( DS == "landmasks.create" ) {
       # on resolution of predictions
-      pps  =  expand.grid( plons=p$plons, plats=p$plats, KEEP.OUT.ATTRS=FALSE)
-      V = SpatialPoints( planar2lonlat( pps, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
+      V = SpatialPoints( planar2lonlat( spatial_grid(p), proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
       landmask( lonlat=V, db="worldHires", regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="predictions" ,internal.projection=p$internal.projection)
 
       # on resolution of statistics
@@ -342,7 +338,8 @@
       nc = p$nplats
 
       # data prediction grid
-      B = expand.grid( plon=p$plons, plat=p$plats, KEEP.OUT.ATTRS=FALSE) 
+
+      B = spatial_grid( p) 
       Bmean = lbm_db( p=p, DS="lbm.prediction", ret="mean" )
       Bsd = lbm_db( p=p, DS="lbm.prediction", ret="sd" )
       Z = cbind(B, Bmean, Bsd)
@@ -394,8 +391,7 @@
 
       Z0 = Z  # rename as 'Z' will be overwritten below     
       L0 = Z0[, c("plon", "plat")]
-      L0i = array_map( "xy->2", L0, 
-        corner=c(p0$plons[1], p0$plats[1]), res=c(p0$pres, p0$pres) )
+      L0i = array_map( "xy->2", L0, gridparams=p0$gridparams )
 
       varnames = setdiff( names(Z0), c("plon","plat", "lon", "lat") )  
       grids = setdiff( unique( p0$spatial.domain.subareas ), p0$spatial.domain )
@@ -403,9 +399,8 @@
       for (gr in grids ) {
         print(gr)
         p1 = spatial_parameters( type=gr ) #target projection
-          L1 = expand.grid( plon=p1$plons, plat=p1$plats, KEEP.OUT.ATTRS=FALSE )
-          L1i = array_map( "xy->2", L1[, c("plon", "plat")], 
-            corner=c(p1$plons[1], p1$plats[1]), res=c(p1$pres, p1$pres) )
+          L1 = spatial_grid( p1 )
+          L1i = array_map( "xy->2", L1[, c("plon", "plat")], gridparams=p1$gridparams )
           L1 = planar2lonlat( L1, proj.type=p1$internal.crs )
           Z = L1
           L1$plon_1 = L1$plon # store original coords

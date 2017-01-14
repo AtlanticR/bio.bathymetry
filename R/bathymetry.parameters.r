@@ -22,8 +22,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
   if (DS=="lbm") {
 
     p$libs = RLibrary( c( p$libs, "lbm" ) ) # required for parallel
-    p$clusters = rep("localhost", detectCores() )
     p$storage.backend="bigmemory.ram"
+    if (!exists("clusters", p)) p$clusters = rep("localhost", detectCores() )
     
     p$boundary = FALSE
     p$depth.filter = FALSE # need data above sea level to get coastline
