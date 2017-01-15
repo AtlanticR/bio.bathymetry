@@ -3,7 +3,7 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
   #\\ create or return isobaths and coastlines/coast polygons
   require(bio.spacetime)
   if (DS %in% c( "isobath", "isobath.redo" )) {
-    fn.iso = file.path( project.datadirectory("bio.bathymetry", "isobaths" ), "isobaths.rdata" )
+    fn.iso = file.path( project.datadirectory("bio.bathymetry", "isobaths" ), paste("isobaths", p$spatial.domain, "rdata", sep=".") )
     isobaths = NULL
     notfound = NULL
 
@@ -16,21 +16,24 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
       }
     }
 
-    p1 = spatial_parameters( type="canada.east.superhighres" )
+    p = spatial_parameters( p )
     depths = sort( unique(c(depths, notfound) ))
-    
-    Z = bathymetry.db( p=p1, DS="complete", varnames=c("plon", "plat", "z") )
-    Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p1$gridparams )
-    Zm = matrix( NA, ncol=p1$nplats, nrow=p1$nplons )
+    x=seq(min(p$corners$plon), max(p$corners$plon), by=p$pres)
+    y=seq(min(p$corners$plat), max(p$corners$plat), by=p$pres)
+ 
+    Z = bathymetry.db( p=p, DS="complete", varnames=c("plon", "plat", "z") )
+    Zi = array_map( "xy->2", Z[, c("plon", "plat")], gridparams=p$gridparams )
+    Zm = matrix( NA, ncol=p$nplats, nrow=p$nplons )
     Zm[Zi] = Z$z
     rm(Z); gc()
-    cl = contourLines( x=p1$plons, y=p1$plats, Zm, levels=depths )
+                  
+    cl = contourLines( x=x, y=y, Zm, levels=depths )
  
-    isobaths = maptools::ContourLines2SLDF(cl, proj4string=CRS( p1$internal.crs ) )
+    isobaths = maptools::ContourLines2SLDF(cl, proj4string=CRS( p$internal.crs ) )
     row.names(slot(isobaths, "data")) = as.character(depths)
     for (i in 1:length(depths)) slot( slot(isobaths, "lines")[[i]], "ID") = as.character(depths[i])
     isobaths = as.SpatialLines.SLDF( isobaths )
-    crs( isobaths ) =  crs ( p1$internal.crs )  # crs gets reset .. not sure why
+    crs( isobaths ) =  crs ( p$internal.crs )  # crs gets reset .. not sure why
     isobaths = spTransform( isobaths, CRS("+init=epsg:4326") )  ## longlat  as storage format
 
     save( isobaths, file=fn.iso, compress=TRUE) # save spherical

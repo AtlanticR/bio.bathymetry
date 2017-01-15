@@ -28,7 +28,7 @@ p = bio.bathymetry::bathymetry.parameters( p=p, DS="lbm" )
 
 DATA='bathymetry.db( p=p, DS="lbm.inputs" )'
 p = lbm( p=p, tasks=c( "initiate" ), DATA=DATA )
-p = lbm( p=p, tasks=c( "stage1", "stage2", "stage3" ) )
+p = lbm( p=p, tasks=c( "stage1", "stage2", "stage3" ) )  #60hrs
 p = lbm( p=p, tasks=c( "save" ) )
 
 
@@ -50,9 +50,11 @@ if( bathyclines.redo ) {
   # note these polygons are created at the resolution specified in p$spatial.domain ..
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
   # For lower one specify an appropriate p$spatial.domain
-  p = bio.bathymetry::bathymetry.parameters(resolution="canada.east") # reset to lower resolution 
   options(max.contour.segments=100000) # required if superhighres is being used
-  plygn = isobath.db( p=p, DS="isobath.redo", depths=depths  )
+  for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
+    p = bio.bathymetry::bathymetry.parameters(resolution=g) 
+    plygn = isobath.db( p=p, DS="isobath.redo", depths=depths  )
+  }
 }
 
 
