@@ -31,7 +31,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     p$lbm_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$lbm_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
     
-    p$lbm_rsquared_threshold = 0.5 # lower threshold
+    p$lbm_rsquared_threshold = 0.75 # lower threshold
     p$lbm_distance_prediction = 7.5 # this is a half window km
     p$lbm_distance_statsgrid = 5 # resolution (km) of data aggregation (i.e. generation of the ** statistics ** )
     p$lbm_distance_scale = 25 # km ... approx guess of 95% AC range 

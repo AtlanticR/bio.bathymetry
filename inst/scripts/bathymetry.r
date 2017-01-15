@@ -52,6 +52,7 @@ if( bathyclines.redo ) {
   # For lower one specify an appropriate p$spatial.domain
   options(max.contour.segments=100000) # required if superhighres is being used
   for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
+    print(g)
     p = bio.bathymetry::bathymetry.parameters(resolution=g) 
     plygn = isobath.db( p=p, DS="isobath.redo", depths=depths  )
   }
