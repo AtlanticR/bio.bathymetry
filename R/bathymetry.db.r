@@ -328,10 +328,10 @@
       #// merge all lbm results and compute stats and warp to different grids
 
       outdir = file.path( project.datadirectory("bio.bathymetry"), "modelled")
+      fn = file.path( outdir, paste( "bathymetry", "complete", p$spatial.domain, "rdata", sep=".") )
       
       if ( DS %in% c( "complete") ) {
         Z = NULL
-        fn = file.path( outdir, paste( "bathymetry", "complete", p$spatial.domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
         return( Z )
       }
