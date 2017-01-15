@@ -379,7 +379,7 @@
 
       # merge into statistics
       BS = lbm_db( p=p, DS="stats.to.prediction.grid" )
-      names(BS) = paste("b", names(BS), sep=".")
+      colnames(BS) = paste("b", colnames(BS), sep=".")
       Z = cbind( Z, BS )
       
       save( Z, file=fn, compress=TRUE)
