@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, return.format="dataframe", varnames=NULL, voi="z" ) {
+  bathymetry.db = function( p=NULL, DS=NULL, return.format="dataframe", varnames=NULL ) {
   
 
     datadir = project.datadirectory("bio.bathymetry", "data" )  # raw data
@@ -327,7 +327,7 @@
     if ( DS %in% c("complete", "complete.redo" )) {
       #// merge all lbm results and compute stats and warp to different grids
 
-      outdir = file.path( project.datadirectory("bio.bathymetry"), "modelled", voi)
+      outdir = file.path( project.datadirectory("bio.bathymetry"), "modelled")
       
       if ( DS %in% c( "complete") ) {
         Z = NULL
