@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, return.format="dataframe", varnames=NULL ) {
+  bathymetry.db = function( p=NULL, DS=NULL, return.format="dataframe", varnames=NULL, voi="z" ) {
   
 
     datadir = project.datadirectory("bio.bathymetry", "data" )  # raw data
@@ -327,10 +327,11 @@
     if ( DS %in% c("complete", "complete.redo" )) {
       #// merge all lbm results and compute stats and warp to different grids
 
+      outdir = file.path( project.datadirectory("bio.bathymetry"), "modelled", voi)
+      
       if ( DS %in% c( "complete") ) {
         Z = NULL
-        fn = file.path( project.datadirectory("bio.bathymetry", "modelled"),
-          paste( "bathymetry", "complete", p$spatial.domain, "rdata", sep=".") )
+        fn = file.path( outdir, paste( "bathymetry", "complete", p$spatial.domain, "rdata", sep=".") )
         if ( file.exists ( fn) ) load( fn)
         return( Z )
       }
@@ -351,9 +352,9 @@
       # oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="land", tag="predictions" )
       # Z$z[oc] = NA
       # Z$z.sd[oc] = NA
-
-      Zmn = matrix( data=Z$z, nrow=nr, ncol=nc )  # means
-
+    
+      Zmn = matrix( Z$z, nrow=nr, ncol=nc )  # means
+   
       # first order central differences but the central term drops out:
       # diffr = ( ( Zmn[ 1:(nr-2), ] - Zmn[ 2:(nr-1), ] ) + ( Zmn[ 2:(nr-1), ] - Zmn[ 3:nr, ] ) ) / 2
       # diffc = ( ( Zmn[ ,1:(nc-2) ] - Zmn[ ,2:(nc-1) ] ) + ( Zmn[ ,2:(nc-1) ] - Zmn[ ,3:nc ] ) ) / 2
@@ -414,8 +415,7 @@
             Z[,vn] = spatial_warp( Z0[,vn], L0, L1, p0, p1, "fast", L0i, L1i )
           }
         Z = Z[ , names(Z0) ]
-        fn = file.path( project.datadirectory("bio.bathymetry", "modelled"),
-          paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
+        fn = file.path( outdir, paste( "bathymetry", "complete", p1$spatial.domain, "rdata", sep=".") )
         save (Z, file=fn, compress=TRUE)
       }
 
@@ -458,7 +458,7 @@
         #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
         #   pn = spatial_parameters( type="SSE", p=pn ) 
         # }
-        Z = bathymetry.db( p=pn, DS="complete"  )
+        Z = bathymetry.db( p=pn, DS="complete" )
         Z = filter.bathymetry( DS=domain, Z=Z )
  
         outfile =  file.path( project.datadirectory("bio.bathymetry"), "modelled",
