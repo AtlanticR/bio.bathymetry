@@ -1,5 +1,5 @@
 
-  bathymetry.db = function( p=NULL, DS=NULL, return.format="dataframe", varnames=NULL ) {
+  bathymetry.db = function( p=NULL, DS=NULL, varnames=NULL ) {
   
 
     datadir = project.datadirectory("bio.bathymetry", "data" )  # raw data
