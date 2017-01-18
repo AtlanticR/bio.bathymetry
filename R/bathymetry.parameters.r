@@ -39,8 +39,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     p$lbm_distance_max = 50 # never go beyond the min and max range ( cpu/ram and time consideration are part of it but mostly what is physically reasonable)
 
     
-    p$n.min = 50 # n.min/n.max changes with resolution
-    p$n.max = 6000 # numerical time/memory constraint -- anything larger takes too much time
+    p$n.min = 100 # n.min/n.max changes with resolution
+    p$n.max = 7500 # numerical time/memory constraint -- anything larger takes too much time
     # other options might work depending upon data density but GP are esp slow .. too slow for bathymetry
     p$sampling = c( 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.1, 1.2, 1.5, 1.75, 2 )  # fractions of median distance scale to try in local block search
  
@@ -87,7 +87,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
       # 14 hrs on hyperion with 100 knots
       ## data range is from -1667 to 5467 m .. 2000 shifts all to positive valued by one order of magnitude
       p$lbm_local_modelformula = formula( 
-        z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=100, bs="ts") )  
+        z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=200, bs="ts") )  
       p$lbm_local_model_distanceweighted = TRUE  
       p$lbm_gam_optimizer ="perf"
 
