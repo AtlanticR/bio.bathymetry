@@ -21,7 +21,7 @@ filter.bathymetry = function( DS, Z ) {
   }
  
   if ( DS == "canada.east" ) {
-    Z = Z[ which(Z$z < 1000 & Z$z > 0 ) ,] 
+    Z = Z[ which(Z$z < 5000 & Z$z > 0 ) ,] 
   }
   
   if ( DS == "SSE.mpa" ) {
