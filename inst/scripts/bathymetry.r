@@ -61,7 +61,7 @@ if( bathyclines.redo ) {
   # note these polygons are created at the resolution specified in p$spatial.domain ..
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
   # For lower one specify an appropriate p$spatial.domain
-  options(max.contour.segments=100000) # required if superhighres is being used
+  options(max.contour.segments=1000) # required if superhighres is being used
   for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
     print(g)
     p = bio.bathymetry::bathymetry.parameters(resolution=g) 
