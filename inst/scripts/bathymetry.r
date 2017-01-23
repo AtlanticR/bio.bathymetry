@@ -61,7 +61,7 @@ if( bathyclines.redo ) {
   # note these polygons are created at the resolution specified in p$spatial.domain ..
   # which by default is very high ("canada.east.highres" = 0.5 km .. p$pres ).
   # For lower one specify an appropriate p$spatial.domain
-  options(max.contour.segments=1000) # required if superhighres is being used
+  options(max.contour.segments=10000) # required if superhighres is being used
   for (g in c("canada.east.superhighres", "canada.east.highres", "canada.east", "SSE", "SSE.mpa", "snowcrab")) {
     print(g)
     p = bio.bathymetry::bathymetry.parameters(resolution=g) 
@@ -75,7 +75,7 @@ p = bio.bathymetry::bathymetry.parameters(resolution="canada.east") # reset to l
   
 plygn = isobath.db( p=p, DS="isobath", depths=depths  )
 
-coast = coastline.db( xlim=c(-68,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
+coast = coastline.db( xlim=c(-75,-52), ylim=c(41,50), no.clip=TRUE )  # no.clip is an option for maptools::getRgshhsMap
 plot( coast, col="transparent", border="steelblue2" , xlim=c(-68,-52), ylim=c(41,50),  xaxs="i", yaxs="i", axes=TRUE )  # ie. coastline
 lines( plygn[ as.character(c( 100, 200, 300 ))], col="gray90" ) # for multiple polygons
 lines( plygn[ as.character(c( 500, 1000))], col="gray80" ) # for multiple polygons
