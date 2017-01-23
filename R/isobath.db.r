@@ -26,7 +26,8 @@ isobath.db = function( ip=NULL, p=NULL, depths=c(100, 200), DS="isobath", crs="+
     Zm = matrix( NA, ncol=p$nplats, nrow=p$nplons )
     Zm[Zi] = Z$z
     rm(Z); gc()
-                  
+
+    Zm = fields::image.smooth( Zm, theta=p$pres, dx=p$pres, dy=p$pres ) # a little smoothed to make contours cleaner              
     cl = contourLines( x=x, y=y, Zm, levels=depths )
  
     isobaths = maptools::ContourLines2SLDF(cl, proj4string=CRS( p$internal.crs ) )
