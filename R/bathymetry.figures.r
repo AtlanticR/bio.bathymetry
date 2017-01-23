@@ -4,21 +4,22 @@ bathymetry.figures = function( p=NULL, vn="z", datarange=NULL, logyvar=FALSE, is
   bioLibrary( "bio.coastline" )
 
   b = bathymetry.db( p=p, DS="complete" )
+  b = b[b$z > 0 , ]
   if (logyvar) {
     b = b[ b[,vn]>0, ]
     b[,vn] = log(b[,vn])
   }
 
-  oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="not.land", tag="predictions",internal.projection=p$internal.projection )
-  if (length(oc) > 0) {
-    b = b[oc,]
-  }
+  # oc = landmask( db="worldHires", regions=c("Canada", "US"), return.value="not.land", tag="predictions",internal.projection=p$internal.projection )
+  # if (length(oc) > 0) {
+  #   b = b[oc,]
+  # }
 
   if (is.null( datarange)) datarange = quantile( b[,vn], probs=c(0.05, 0.95), na.rm=TRUE )
   dr = seq( datarange[1], datarange[2], length.out=100)
 
   print( 
-    levelplot( b[,vn] ~ plon + plat, data=b[oc,], aspect="iso", main=NULL, 
+    levelplot( b[,vn] ~ plon + plat, data=b[,], aspect="iso", main=NULL, 
       at=dr, col.regions=rev(color.code( "seis", dr)) ,
       contour=FALSE, labels=FALSE, pretty=TRUE, xlab=NULL,ylab=NULL,scales=list(draw=FALSE),
       panel = function(x, y, subscripts, ...) {

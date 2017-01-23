@@ -6,7 +6,6 @@
 if ( basedata.redo ) {
   p = bio.bathymetry::bathymetry.parameters() 
   bathymetry.db( p=p, DS="z.lonlat.rawdata.redo" ) # needs about 42 GB RAM, JC 2015
-  bathymetry.db( p=p, DS="landmasks.create" ) # re-run only if default resolution .. v. slow ... currently using sp::over ... replace with point.in.polygon (TODO)
   bathymetry.db( p=p, DS="lbm.inputs.redo" )  # Warning: req ~ 15 min, 40 GB RAM (2015, Jae) data to model (with covariates if any)
 }
   

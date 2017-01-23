@@ -315,9 +315,11 @@
       landmask( lonlat=V, db="worldHires", regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="predictions" ,internal.projection=p$internal.projection)
 
       # on resolution of statistics
-      V = as.data.frame(p$ff$Sloc[])
+      sbox = list( 
+        plats = seq( p$corners$plat[1], p$corners$plat[2], by=p$lbm_distance_statsgrid ),
+        plons = seq( p$corners$plon[1], p$corners$plon[2], by=p$lbm_distance_statsgrid ) )
+      V = as.matrix( expand.grid( sbox$plons, sbox$plats ))
       names(V) = c("plon", "plat")
-      # V = data.frame( cbind(plon=Sloc[,1], plat=Sloc[,2]) )
       V = SpatialPoints( planar2lonlat( V, proj.type=p$internal.crs )[, c("lon", "lat" )], CRS("+proj=longlat +datum=WGS84") )
       landmask( lonlat=V, db="worldHires",regions=c("Canada", "US"), ylim=c(36,53), xlim=c(-72,-45), tag="statistics" ,internal.projection=p$internal.projection)
     }
