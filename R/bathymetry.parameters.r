@@ -51,7 +51,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     p$lbm_local_family = lbm::log_gaussian_offset(2000)
 
     if ( p$lbm_local_modelengine %in% c("krige" )) { 
-      p$lbm_krige_engine="fields" # faster than gstat
+      
+      # nothing to do  .. this is faster than "gstat"
 
     } else if ( p$lbm_local_modelengine =="gaussianprocess2Dt" ) {
       # too slow to use right now
