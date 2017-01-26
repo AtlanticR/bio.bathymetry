@@ -27,8 +27,8 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
     
     p$boundary = FALSE
     p$depth.filter = FALSE # need data above sea level to get coastline
-    p$lbm_nonconvexhull_alpha = 20  # radius in distance units (km) to use for determining boundaries
-    p$lbm_noise = 0.001  # distance units for eps noise to permit mesh gen for boundaries
+
+    p$lbm_eps = 0.001  # distance units for eps noise to permit mesh gen for boundaries
     p$lbm_quantile_bounds = c(0.01, 0.99) # remove these extremes in interpolations
     
     p$lbm_rsquared_threshold = 0.75 # lower threshold
