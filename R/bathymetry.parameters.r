@@ -91,6 +91,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
         z ~ s(plon,k=3, bs="ts") + s(plat, k=3, bs="ts") + s(plon, plat, k=200, bs="ts") )  
       p$lbm_local_model_distanceweighted = TRUE  
       p$lbm_gam_optimizer ="perf"
+      
 
     } else if ( p$lbm_local_modelengine == "bayesx" ) {
     
