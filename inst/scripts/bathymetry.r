@@ -54,7 +54,7 @@ bathymetry.db( p=p, DS="baseline.redo" )  # coords of areas of interest ..filter
 ### -----------------------------------------------------------------
 # to recreate new polygons, run the following:
 bathyclines.redo = FALSE
-depths = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 400, 500, 600, 700, 750, 800, 900,
+depths = c( 0, 10, 20, 50, 75, 100, 200, 250, 300, 350, 400, 450, 500, 550, 600, 700, 750, 800, 900,
              1000, 1200, 1250, 1400, 1500, 1750, 2000, 2500, 3000, 4000, 5000 )
 if( bathyclines.redo ) {
   # note these polygons are created at the resolution specified in p$spatial.domain ..
