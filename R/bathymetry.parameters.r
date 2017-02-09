@@ -99,7 +99,7 @@ bathymetry.parameters = function(DS="bio.bathymetry", p=NULL, resolution=NULL ) 
       p$lbm_local_modelformula = formula(z ~ s(plon, bs="ps") + s(plat, bs="ps") + s(plon, plat, bs="te") )  # more detail than "gs" .. "te" is preferred
       p$lbm_local_model_bayesxmethod="MCMC"  # REML actually seems to be the same speed ... i.e., most of the time is spent in thhe prediction step ..
       p$lbm_local_model_distanceweighted = TRUE  
-      p$lbm_local_family_bayesx ="gaussian"  ## NOTE:: need to check this ...
+      p$lbm_local_family ="gaussian"  ## NOTE:: need to check this ...
 
     } else if (p$lbm_local_modelengine == "inla" ){
       
