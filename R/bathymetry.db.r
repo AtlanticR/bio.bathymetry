@@ -467,14 +467,14 @@
         ii = which( Z$dZ < exp(-6)) 
         if (length(ii) > 0) Z$dZ[ii] = exp(-6)
         
-        ii = which( Z$dZ > exp(5)) 
-        if (length(ii) > 0) Z$dZ[ii] = exp(5)
+        ii = which( Z$dZ > 50 ) 
+        if (length(ii) > 0) Z$dZ[ii] = 50
 
-        ii = which( Z$ddZ < exp(-8)) 
-        if (length(ii) > 0) Z$ddZ[ii] = exp(-8)
+        ii = which( Z$ddZ < exp(-6)) 
+        if (length(ii) > 0) Z$ddZ[ii] = exp(-6)
         
-        ii = which( Z$ddZ > exp(6)) 
-        if (length(ii) > 0) Z$ddZ[ii] = exp(6)
+        ii = which( Z$ddZ > 20 ) 
+        if (length(ii) > 0) Z$ddZ[ii] = 20
 
         outfile =  file.path( project.datadirectory("bio.bathymetry"), "modelled",
           paste( "bathymetry", "baseline", domain, "rdata" , sep=".") )
