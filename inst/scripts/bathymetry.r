@@ -26,11 +26,11 @@ p = bio.bathymetry::bathymetry.parameters( p=p, DS="lbm" )
 # p$clusters = rep("localhost",  detectCores() )
 
 DATA='bathymetry.db( p=p, DS="lbm.inputs" )'
-p = lbm( p=p, tasks=c( "initiate" ), DATA=DATA ) # a few minutes
-p = lbm( p=p, tasks=c( "stage1" ) )  #60hrs
-p = lbm( p=p, tasks=c( "stage2" ) )  #10hrs ?
-p = lbm( p=p, tasks=c( "stage3" ) )  #1hrs ?
-p = lbm( p=p, tasks=c( "save" ) )
+lbm( p=p, tasks=c( "initiate" ), DATA=DATA ) # a few minutes
+lbm( p=p, tasks=c( "stage1" ) )  #60hrs
+lbm( p=p, tasks=c( "stage2" ) )  #10hrs ?
+lbm( p=p, tasks=c( "stage3" ) )  #1hrs ?
+lbm( p=p, tasks=c( "save" ) )
 
   # to view progress in terminal:
   # watch -n 120 cat /home/jae/bio.data/bio.bathymetry/modelled/t/canada.east.superhighres/lbm_current_status
