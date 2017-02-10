@@ -454,7 +454,7 @@
         return (Z)
       }
 
-      for (domain in p$spatial.domain.subareas) {
+      for (domain in unique( c(p$spatial.domain.subareas, p$spatial.domain ) ) ) {
         pn = spatial_parameters( type=domain )
         # if ( pn$spatial.domain == "snowcrab" ) {
         #   # NOTE::: snowcrab baseline == SSE baseline, except it is a subset so begin with the SSE conditions
@@ -462,7 +462,20 @@
         # }
         Z = bathymetry.db( p=pn, DS="complete" )
         Z = filter.bathymetry( DS=domain, Z=Z )
- 
+        
+        # range checks
+        ii = which( Z$dZ < exp(-6)) 
+        if (length(ii) > 0) Z$dZ[ii] = exp(-6)
+        
+        ii = which( Z$dZ > exp(5)) 
+        if (length(ii) > 0) Z$dZ[ii] = exp(5)
+
+        ii = which( Z$ddZ < exp(-8)) 
+        if (length(ii) > 0) Z$ddZ[ii] = exp(-8)
+        
+        ii = which( Z$ddZ > exp(6)) 
+        if (length(ii) > 0) Z$ddZ[ii] = exp(6)
+
         outfile =  file.path( project.datadirectory("bio.bathymetry"), "modelled",
           paste( "bathymetry", "baseline", domain, "rdata" , sep=".") )
  
