@@ -28,7 +28,7 @@ p = bio.bathymetry::bathymetry.parameters( p=p, DS="lbm" )
 DATA='bathymetry.db( p=p, DS="lbm.inputs" )'
 lbm( p=p, tasks=c( "initiate" ), DATA=DATA ) # a few minutes
 lbm( p=p, tasks=c( "stage1" ) )  #60hrs
-lbm( p=p, tasks=c( "stage2" ) )  #10hrs ?
+# lbm( p=p, tasks=c( "stage2" ) )  #10hrs ? .. can cause memory overload crashes
 lbm( p=p, tasks=c( "stage3" ) )  #1hrs ?
 lbm( p=p, tasks=c( "save" ) )
 
